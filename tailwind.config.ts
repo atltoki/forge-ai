@@ -1,0 +1,2 @@
+import type { Config } from 'tailwindcss';
+export default { content: ['./app/**/*.{ts,tsx}', './components/**/*.{ts,tsx}'], theme: { extend: { fontFamily: { sans: ['var(--font-dm-sans)', 'sans-serif'], mono: ['var(--font-dm-mono)', 'monospace'] }, colors: { ink: '#101114', panel: '#18191d', line: '#2a2b31', brand: '#b8ff5c', mint: '#b8ff5c' }, boxShadow: { glow: '0 3px 16px rgba(184,255,92,.09)' } } }, plugins: [] } satisfies Config;

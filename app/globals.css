@@ -1,0 +1,7 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@import url('https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600;9..40,700&display=swap');
+@layer base { * { @apply border-line; } body { @apply min-h-screen bg-ink text-slate-100 antialiased; } }
+@layer components { .card { @apply rounded-xl border bg-panel p-5 shadow-glow; } .eyebrow { @apply font-mono text-[11px] font-medium uppercase tracking-[.08em] text-brand; } .btn { @apply inline-flex items-center gap-2 rounded-lg px-4 py-2.5 text-sm font-semibold transition; } .btn-primary { @apply btn bg-brand text-[#202513] hover:bg-[#d2ff91]; } .btn-muted { @apply btn border border-[#393a40] bg-[#25262b] text-slate-300 hover:bg-white/10; } .nav-link { @apply flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-slate-400 transition hover:bg-[#202126] hover:text-white; } .nav-link-active { @apply bg-[#23242a] text-white; } }
