@@ -1,18 +1,48 @@
 # FORGE AI
 
-FORGE AI est la migration Next.js du cockpit opérationnel V0.1. Le projet conserve l'identité sombre avec accent vert lime de l'interface initiale, tout en remplaçant la page HTML unique par des routes typées et des composants React réutilisables.
+FORGE AI est un OS d’agents IA. La V0.2 transforme le cockpit V0.1 en base applicative Next.js utilisable pour créer, superviser et faire évoluer des agents, des missions, des outils, de la mémoire et des logs.
 
-## Contenu du projet
+## Stack
 
-- Next.js 15, TypeScript, App Router et Tailwind CSS
-- Pages : Dashboard, Agents, Missions, Memory et Settings
-- Structure d'application, icônes, cartes de métriques et indicateurs de progression réutilisables
-- Données de démonstration pour une interface utilisable immédiatement
-- Configuration client/serveur Supabase et schéma avec règles de sécurité RLS
-- Base d'une passerelle de missions Cloudflare Worker
-- Endpoints API : `GET /api/health` et `GET /api/missions`
+- Next.js 15, TypeScript, App Router
+- Tailwind CSS
+- Supabase Auth + PostgreSQL + RLS
+- Cloudflare Workers pour l’exécution des missions
+- Vercel pour le déploiement web
 
-## Lancer le projet en local
+## Pages
+
+- Dashboard
+- Agents
+- Missions
+- Memory
+- Tools
+- Logs
+- Analytics
+- Auth
+- Settings
+
+## Architecture
+
+```text
+Mission
+-> Manager
+-> Découpage
+-> Agents
+-> Tools
+-> Résultats
+-> Memory
+-> Dashboard
+```
+
+Le code est organisé autour de moteurs simples et typés :
+
+- `lib/engines/agent-engine.ts`
+- `lib/engines/mission-engine.ts`
+- `lib/engines/tool-manager.ts`
+- `lib/engines/memory-engine.ts`
+
+## Lancer en local
 
 ```bash
 npm install
@@ -20,18 +50,35 @@ cp .env.example .env.local
 npm run dev
 ```
 
-Ouvrez [http://localhost:3000](http://localhost:3000). Sans variables d'environnement configurées, l'application utilise volontairement les données de démonstration.
+Puis ouvrez [http://localhost:3000](http://localhost:3000).
 
-## Connecter Supabase
+Sans Supabase configuré, l’application reste utilisable avec les données de démonstration.
+
+## Supabase
 
 1. Créez un projet Supabase.
-2. Exécutez [`supabase/schema.sql`](./supabase/schema.sql) dans l'éditeur SQL Supabase.
-3. Ajoutez `NEXT_PUBLIC_SUPABASE_URL` et `NEXT_PUBLIC_SUPABASE_ANON_KEY` à `.env.local`.
-4. Ajoutez l'authentification puis remplacez progressivement les données de démonstration de `lib/data.ts` selon les besoins du produit.
+2. Exécutez `supabase/schema.sql` dans l’éditeur SQL Supabase.
+3. Ajoutez dans Vercel et `.env.local` :
 
-L'API des missions lit automatiquement Supabase lorsqu'il est configuré. Sinon, elle renvoie les données de démonstration afin de faciliter le développement local.
+```bash
+NEXT_PUBLIC_SUPABASE_URL=
+NEXT_PUBLIC_SUPABASE_ANON_KEY=
+SUPABASE_SERVICE_ROLE_KEY=
+```
 
-## Déployer le Worker de missions
+Le schéma crée les tables suivantes :
+
+- `users`
+- `agents`
+- `missions`
+- `memory`
+- `tools`
+- `logs`
+- `executions`
+
+Toutes les tables principales utilisent Row Level Security pour isoler les données par utilisateur.
+
+## Cloudflare Worker
 
 ```bash
 cd workers/mission-runner
@@ -39,14 +86,36 @@ npx wrangler secret put WORKER_API_TOKEN
 npx wrangler deploy
 ```
 
-Après le déploiement, ajoutez `WORKER_API_URL` et `WORKER_API_TOKEN` aux variables d'environnement Next.js. Le Worker valide actuellement un jeton Bearer et accepte une charge utile de mission ; l'exécution des outils et la persistance de file d'attente sont les prochaines intégrations prévues.
+Ajoutez ensuite dans Vercel :
 
-## Organisation du projet
-
-```text
-app/                     Pages et routes API
-components/              Structure de l'application et composants d'interface
-lib/supabase/            Clients Supabase navigateur et serveur
-supabase/schema.sql      Schéma initial de la base et politiques RLS
-workers/mission-runner/  Passerelle Cloudflare Worker
+```bash
+WORKER_API_URL=
+WORKER_API_TOKEN=
+CLOUDFLARE_ACCOUNT_ID=
+CLOUDFLARE_AI_GATEWAY_ID=
 ```
+
+Le Worker actuel sert de passerelle sécurisée pour accepter une mission. Les prochaines étapes seront l’exécution réelle des outils, la file d’attente et le retour des résultats dans Supabase.
+
+## API
+
+- `GET /api/health`
+- `GET /api/agents`
+- `GET /api/tools`
+- `GET /api/missions`
+- `POST /api/missions`
+- `GET /api/mission-engine`
+- `POST /api/mission-engine`
+- `GET /api/auth/status`
+
+## Workflow
+
+Chaque évolution doit passer par :
+
+1. Nouvelle branche
+2. Commit propre
+3. Push GitHub
+4. Pull Request
+5. Changelog
+
+Le dépôt GitHub reste la source de vérité.
