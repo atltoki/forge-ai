@@ -28,7 +28,7 @@ export default function AuthPage() {
       const supabase = createSupabaseBrowserClient();
       const { error } = await supabase.auth.signInWithOtp({
         email,
-        options: { emailRedirectTo: window.location.origin },
+        options: { emailRedirectTo: `${window.location.origin}/auth/callback?next=/missions` },
       });
 
       setStatus(error ? error.message : 'Lien magique envoyé. Vérifie ton email.');
