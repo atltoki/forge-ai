@@ -3,3 +3,17 @@ main = "src/index.ts"
 compatibility_date = "2026-08-06"
 
 # Set secrets with: wrangler secret put WORKER_API_TOKEN
+
+[[queues.producers]]
+binding = "EXECUTION_QUEUE"
+queue = "forge-ai-executions"
+
+[[queues.consumers]]
+queue = "forge-ai-executions"
+max_batch_size = 1
+max_batch_timeout = 30
+max_retries = 3
+
+[vars]
+RESEARCH_AGENT_URL = "https://forge-ai-black-kappa.vercel.app/api/research-agent"
+EXECUTION_CALLBACK_URL = "https://forge-ai-black-kappa.vercel.app/api/executions/callback"
