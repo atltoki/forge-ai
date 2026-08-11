@@ -13,7 +13,7 @@ async function authenticatedClient() {
 export async function GET() {
   const context = await authenticatedClient();
   if ('error' in context) return context.error;
-  const { data, error } = await context.supabase.from('prospects').select('*, missions(title)').eq('user_id', context.user.id).order('score', { ascending: false }).order('created_at', { ascending: false });
+  const { data, error } = await context.supabase.from('prospects').select('*, missions(title), outreach_messages(*)').eq('user_id', context.user.id).order('score', { ascending: false }).order('created_at', { ascending: false });
   return error ? NextResponse.json({ error: error.message }, { status: 500 }) : NextResponse.json({ data });
 }
 
