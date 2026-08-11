@@ -23,5 +23,7 @@ describe('prospect result parsing', () => {
   it('downgrades prospects clearly outside the requested market', () => {
     const [prospect] = parseProspects('## Transport Test\nSite : https://example.ca\nVille : Québec\nActivité : Transport\nQualification : Entreprise située au Canada.', [], 'Trouve des entreprises au Portugal');
     expect(prospect.score).toBeLessThanOrEqual(40);
+    const [tunisian] = parseProspects('## STS\nSite : https://example.tn\nActivité : Transport\nQualification : Entreprise publique tunisienne.', [], 'Entreprises au Portugal');
+    expect(tunisian.score).toBeLessThanOrEqual(40);
   });
 });

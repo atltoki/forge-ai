@@ -55,7 +55,7 @@ export function scoreProspect(prospect: Omit<ParsedProspect, 'score'>, objective
   const assessment = `${prospect.qualification} ${prospect.city}`.toLocaleLowerCase('fr-FR');
   const negative = /hors cible|ne correspond pas|non pertinent|à exclure|a exclure/.test(assessment);
   const requestedPortugal = /\bportugal\b/i.test(objective);
-  const clearlyOutsidePortugal = /\b(canada|québec|quebec|france|belgique|suisse)\b/i.test(assessment);
+  const clearlyOutsidePortugal = /\b(canada|québec|quebec|france|belgique|suisse|tunisie|tunisien|tunisienne)\b/i.test(assessment);
   if (negative || (requestedPortugal && clearlyOutsidePortugal)) return Math.min(score, 40);
   return Math.min(score, 100);
 }
