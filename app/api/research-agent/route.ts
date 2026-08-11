@@ -136,6 +136,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ ...research, generatedAt: new Date().toISOString() });
   } catch (error) {
     const message = error instanceof Error ? error.message : 'Research provider failed';
+    console.error('Research provider failed', { message });
     return NextResponse.json({ error: message }, { status: 502 });
   }
 }
