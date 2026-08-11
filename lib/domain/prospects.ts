@@ -53,14 +53,23 @@ function websiteHost(website: string) {
 
 export function extractPublicContact(results: ContactSearchResult[], website = '') {
   const host = websiteHost(website);
-  const texts = results.map((result) => `${result.title ?? ''}\n${result.content ?? ''}\n${result.url ?? ''}`);
+  const rows = results.map((result) => ({ result, text: `${result.title ?? ''}\n${result.content ?? ''}\n${result.url ?? ''}` }));
+  const texts = rows.map((row) => row.text);
   const unsuitableMailbox = /^(etica|ethics|privacy|privacidade|dpo|rgpd|abuse|legal|compliance|recrutamento|careers|jobs|rh|hr|noreply|no-reply)@/i;
-  const emails = [...new Set(texts.flatMap((text) => text.match(/[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}/gi) ?? []).map((email) => email.toLowerCase()))]
-    .filter((email) => !/\.(png|jpg|jpeg|gif|webp|svg)$/i.test(email) && !unsuitableMailbox.test(email));
-  const email = emails.find((candidate) => host && candidate.endsWith(`@${host}`)) ?? emails[0] ?? '';
+  const genericMailbox = /^(info|contact|geral|comercial|sales|vendas|hello|ola|office|marketing|business)@/i;
+  const decisionRole = /\b(ceo|chief|diretor|diretora|director|gerente|manager|founder|fundador|fundadora|responsável|responsavel|commercial|comercial|sales)\b/i;
+  const currentYear = new Date().getUTCFullYear();
+  const candidates = rows.flatMap(({ result, text }) => {
+    const years = text.match(/\b20\d{2}\b/g)?.map(Number) ?? [];
+    if (years.length && Math.max(...years) < currentYear - 2) return [];
+    return (text.match(/[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}/gi) ?? []).map((email) => ({ email: email.toLowerCase(), result, text }));
+  }).filter(({ email, text }) => !/\.(png|jpg|jpeg|gif|webp|svg)$/i.test(email) && !unsuitableMailbox.test(email) && (genericMailbox.test(email) || decisionRole.test(text)));
+  const chosen = candidates.find(({ email }) => host && email.endsWith(`@${host}`)) ?? candidates[0];
+  const email = chosen?.email ?? '';
   const phone = texts.flatMap((text) => text.match(/(?:\+|00)351[\s.-]?(?:\d[\s.-]?){9}/g) ?? [])[0]?.replace(/\s+/g, ' ').trim() ?? '';
   const linkedinUrl = results.find((result) => /linkedin\.com\/(company|in)\//i.test(result.url ?? ''))?.url ?? '';
-  const sourceUrl = results.find((result) => result.url && (email || phone) && `${result.title ?? ''} ${result.content ?? ''}`.toLowerCase().includes((email || phone).toLowerCase()))?.url
+  const sourceUrl = chosen?.result.url
+    ?? results.find((result) => result.url && phone && `${result.title ?? ''} ${result.content ?? ''}`.toLowerCase().includes(phone.toLowerCase()))?.url
     ?? results.find((result) => result.url)?.url
     ?? '';
   return { email, phone, linkedinUrl, sourceUrl };
