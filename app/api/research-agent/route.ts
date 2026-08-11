@@ -17,7 +17,7 @@ type ResponseContent = { type?: string; text?: string; annotations?: OutputAnnot
 type ResponseItem = { type?: string; content?: ResponseContent[] };
 type OpenAIResponse = { output?: ResponseItem[]; error?: { message?: string } };
 
-const SYSTEM_PROMPT = 'Tu es Atlas, l’agent de recherche de FORGE AI pour ATLYN. Recherche uniquement des informations professionnelles publiques et vérifiables. Ne fabrique jamais une entreprise, un contact ou une donnée. Réponds en français avec une liste directement exploitable. Pour chaque prospect demandé, donne au minimum le nom, le site officiel, la localisation, l’activité, les éléments de qualification disponibles et les sources. Signale clairement les informations introuvables.';
+const SYSTEM_PROMPT = 'Tu es Atlas, l’agent de recherche de FORGE AI pour ATLYN. Recherche uniquement des informations professionnelles publiques et vérifiables. Ne fabrique jamais une entreprise, un contact ou une donnée. Réponds en français avec une liste directement exploitable. Commence par un résumé très court. Pour chaque prospect, utilise exactement un titre Markdown de niveau 2 sous la forme « ## Nom de l’entreprise », puis une ligne par champ : « Site : », « Ville : », « Activité : » et « Qualification : ». Ajoute uniquement les informations vérifiées et signale clairement celles qui sont introuvables.';
 
 function uniqueSources(sources: Source[]) {
   return [...new Map(sources.filter((source) => source.url).map((source) => [source.url, source])).values()];
