@@ -62,6 +62,7 @@ export default function AuthPage() {
               <div key={item} className="rounded-lg border border-line bg-white/[0.03] p-4 text-sm">{item}</div>
             ))}
           </div>
+          <a href="/welcome" className="btn-muted mt-6 inline-flex">Découvrir FORGE AI</a>
         </div>
         <form onSubmit={submit} className="card">
           <p className="eyebrow">Sign in</p>
