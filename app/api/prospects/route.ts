@@ -65,16 +65,22 @@ export async function POST(request: NextRequest) {
 export async function PATCH(request: NextRequest) {
   const context = await authenticatedClient();
   if ('error' in context) return context.error;
-  const body = await request.json().catch(() => null) as { id?: unknown; status?: unknown; notes?: unknown; followUpAt?: unknown } | null;
+  const body = await request.json().catch(() => null) as { id?: unknown; status?: unknown; notes?: unknown; followUpAt?: unknown; contactName?: unknown; email?: unknown; phone?: unknown } | null;
   if (typeof body?.id !== 'string') return NextResponse.json({ error: 'Prospect identifier is required' }, { status: 400 });
   if (body.status !== undefined && (typeof body.status !== 'string' || !prospectStatuses.includes(body.status as never))) return NextResponse.json({ error: 'Invalid prospect status' }, { status: 400 });
   if (body.notes !== undefined && typeof body.notes !== 'string') return NextResponse.json({ error: 'Invalid notes' }, { status: 400 });
   if (body.followUpAt !== undefined && body.followUpAt !== null && typeof body.followUpAt !== 'string') return NextResponse.json({ error: 'Invalid follow-up date' }, { status: 400 });
+  if (body.contactName !== undefined && typeof body.contactName !== 'string') return NextResponse.json({ error: 'Invalid contact name' }, { status: 400 });
+  if (body.email !== undefined && typeof body.email !== 'string') return NextResponse.json({ error: 'Invalid email' }, { status: 400 });
+  if (body.phone !== undefined && typeof body.phone !== 'string') return NextResponse.json({ error: 'Invalid phone' }, { status: 400 });
 
   const updates: Record<string, unknown> = { updated_at: new Date().toISOString() };
   if (body.status !== undefined) updates.status = body.status;
   if (body.notes !== undefined) updates.notes = body.notes.trim().slice(0, 4000);
   if (body.followUpAt !== undefined) updates.follow_up_at = body.followUpAt || null;
+  if (body.contactName !== undefined) updates.contact_name = body.contactName.trim().slice(0, 200);
+  if (body.email !== undefined) updates.email = body.email.trim().toLowerCase().slice(0, 320);
+  if (body.phone !== undefined) updates.phone = body.phone.trim().slice(0, 100);
   const { data, error } = await context.supabase.from('prospects').update(updates).eq('id', body.id).eq('user_id', context.user.id).select('*').single();
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
   await context.supabase.from('logs').insert({ user_id: context.user.id, mission_id: data.mission_id, level: 'info', source: 'ATLYN Pipeline', message: `Prospect « ${data.company_name} » mis à jour : ${data.status}.` });
