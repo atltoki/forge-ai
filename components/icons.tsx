@@ -12,6 +12,13 @@ export function Icon({ name, size = 18 }: { name: string; size?: number }) {
     plus: 'M12 5v14m-7-7h14',
     bell: 'M18 9a6 6 0 00-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9zm-8 12h4',
     search: 'M21 21l-4.4-4.4m1.4-5.1a6.5 6.5 0 11-13 0 6.5 6.5 0 0113 0z',
+    copy: 'M8 8h11a2 2 0 012 2v9a2 2 0 01-2 2H10a2 2 0 01-2-2V8zm-3 8H4a2 2 0 01-2-2V5a3 3 0 013-3h9a2 2 0 012 2v1',
+    download: 'M12 3v12m0 0l-5-5m5 5l5-5M5 21h14',
+    retry: 'M20 11a8 8 0 10-2.3 5.7M20 11V5m0 6h-6',
+    trash: 'M4 7h16M9 7V4h6v3m3 0l-1 14H7L6 7m4 4v6m4-6v6',
+    chevron: 'M9 6l6 6-6 6',
+    check: 'M5 12l4 4L19 6',
+    clock: 'M12 7v5l3 2m6-2a9 9 0 11-18 0 9 9 0 0118 0z',
   };
 
   return (
