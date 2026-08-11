@@ -41,7 +41,6 @@ export function Shell({ title, children }: { title: string; children: React.Reac
             <h1 className="mt-1 text-2xl font-semibold">{title}</h1>
           </div>
           <div className="flex gap-2">
-            <button className="btn-muted p-2.5" aria-label="Notifications"><Icon name="bell" /></button>
             <Link href="/missions" className="btn-primary"><Icon name="plus" />New mission</Link>
           </div>
         </header>

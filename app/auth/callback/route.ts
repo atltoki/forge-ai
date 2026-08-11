@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
 import { createServerClient } from '@supabase/ssr';
 import type { CookieOptions } from '@supabase/ssr';
+import { bootstrapWorkspace } from '@/lib/supabase/bootstrap';
 
 export async function GET(request: NextRequest) {
   const code = request.nextUrl.searchParams.get('code');
@@ -35,6 +36,9 @@ export async function GET(request: NextRequest) {
   if (error) {
     return NextResponse.redirect(new URL(`/auth?error=${encodeURIComponent(error.message)}`, request.url));
   }
+
+  const { data: { user } } = await supabase.auth.getUser();
+  if (user) await bootstrapWorkspace(supabase, user);
 
   return NextResponse.redirect(new URL(safeNext, request.url));
 }

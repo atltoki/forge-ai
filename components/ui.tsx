@@ -1,4 +1,5 @@
 import { Icon } from './icons';
+import Link from 'next/link';
 
 export function Metric({ label, value, detail }: { label: string; value: string; detail: string }) {
   return <div className="card"><p className="text-sm text-slate-400">{label}</p><p className="mt-3 text-3xl font-semibold">{value}</p><p className="mt-2 text-xs text-mint">{detail}</p></div>;
@@ -9,7 +10,7 @@ export function Progress({ value }: { value: number }) {
 }
 
 export function Empty({ title, copy }: { title: string; copy: string }) {
-  return <div className="card py-14 text-center"><div className="mx-auto grid h-12 w-12 place-items-center rounded-2xl bg-brand/15 text-violet-300"><Icon name="plus" /></div><h2 className="mt-4 font-semibold">{title}</h2><p className="mx-auto mt-2 max-w-sm text-sm text-slate-400">{copy}</p><button className="btn-primary mt-5">Create mission</button></div>;
+  return <div className="card py-14 text-center"><div className="mx-auto grid h-12 w-12 place-items-center rounded-2xl bg-brand/15 text-violet-300"><Icon name="plus" /></div><h2 className="mt-4 font-semibold">{title}</h2><p className="mx-auto mt-2 max-w-sm text-sm text-slate-400">{copy}</p><Link href="/missions" className="btn-primary mt-5">Créer une mission</Link></div>;
 }
 
 export function StatusBadge({ value }: { value: string }) {

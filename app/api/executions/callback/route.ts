@@ -1,20 +1,51 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createSupabaseAdminClient } from '@/lib/supabase/admin';
 
-const statuses = new Set(['completed', 'failed']);
+const statuses = new Set(['running', 'completed', 'failed']);
 
 export async function POST(request: NextRequest) {
   const expectedToken = process.env.WORKER_CALLBACK_TOKEN;
   if (!expectedToken || request.headers.get('authorization') !== `Bearer ${expectedToken}`) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   const body = await request.json().catch(() => null) as { executionId?: unknown; missionId?: unknown; status?: unknown; output?: unknown; error?: unknown } | null;
   if (typeof body?.executionId !== 'string' || typeof body.missionId !== 'string' || typeof body.status !== 'string' || !statuses.has(body.status)) return NextResponse.json({ error: 'Invalid execution callback' }, { status: 400 });
+
   const supabase = createSupabaseAdminClient();
   if (!supabase) return NextResponse.json({ error: 'Supabase service role is not configured' }, { status: 503 });
+  const { data: execution, error: lookupError } = await supabase.from('executions').select('id,user_id,status,output').eq('id', body.executionId).eq('mission_id', body.missionId).maybeSingle();
+  if (lookupError) return NextResponse.json({ error: lookupError.message }, { status: 500 });
+  if (!execution) return NextResponse.json({ error: 'Execution not found' }, { status: 404 });
+  if (execution.status === 'completed' && body.status === 'completed') return NextResponse.json({ ok: true, idempotent: true });
+
   const now = new Date().toISOString();
-  const executionUpdate = body.status === 'completed' ? { status: 'completed', output: body.output ?? {}, completed_at: now, error: null } : { status: 'failed', error: typeof body.error === 'string' ? body.error : 'Execution failed', completed_at: now };
+  const isRunning = body.status === 'running';
+  const isCompleted = body.status === 'completed';
+  const errorMessage = typeof body.error === 'string' ? body.error : 'Execution failed';
+  const executionUpdate = isRunning
+    ? { status: 'running', started_at: now, error: null }
+    : isCompleted
+      ? { status: 'completed', output: body.output ?? {}, completed_at: now, error: null }
+      : { status: 'failed', error: errorMessage, completed_at: now };
+  const missionUpdate = isRunning
+    ? { status: 'running', progress: 20, updated_at: now }
+    : isCompleted
+      ? { status: 'completed', progress: 100, updated_at: now, result: body.output ?? {} }
+      : { status: 'failed', progress: 0, updated_at: now, result: { error: errorMessage } };
+
   const { error: executionError } = await supabase.from('executions').update(executionUpdate).eq('id', body.executionId).eq('mission_id', body.missionId);
   if (executionError) return NextResponse.json({ error: executionError.message }, { status: 500 });
-  const { error: missionError } = await supabase.from('missions').update({ status: body.status, progress: body.status === 'completed' ? 100 : 0, updated_at: now, result: body.output ?? { error: body.error } }).eq('id', body.missionId);
+  const { data: mission, error: missionError } = await supabase.from('missions').update(missionUpdate).eq('id', body.missionId).eq('user_id', execution.user_id).select('title').single();
   if (missionError) return NextResponse.json({ error: missionError.message }, { status: 500 });
+
+  const level = body.status === 'failed' ? 'error' : 'info';
+  const message = isRunning ? `Mission « ${mission.title} » en cours d’exécution.` : isCompleted ? `Mission « ${mission.title} » terminée avec succès.` : `Mission « ${mission.title} » échouée : ${errorMessage}`;
+  await supabase.from('logs').insert({ user_id: execution.user_id, mission_id: body.missionId, level, source: 'Mission Runner', message, metadata: { execution_id: body.executionId } });
+
+  if (isCompleted) {
+    const content = typeof (body.output as { result?: unknown } | null)?.result === 'string' ? String((body.output as { result: string }).result) : JSON.stringify(body.output ?? {});
+    const { data: existingMemory } = await supabase.from('memory').select('id').eq('user_id', execution.user_id).eq('mission_id', body.missionId).eq('collection', 'Mission results').maybeSingle();
+    if (existingMemory) await supabase.from('memory').update({ title: mission.title, content, metadata: body.output ?? {}, updated_at: now }).eq('id', existingMemory.id);
+    else await supabase.from('memory').insert({ user_id: execution.user_id, mission_id: body.missionId, title: mission.title, collection: 'Mission results', content, metadata: body.output ?? {} });
+  }
+
   return NextResponse.json({ ok: true, executionId: body.executionId, status: body.status });
 }

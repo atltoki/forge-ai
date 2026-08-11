@@ -1,31 +1,23 @@
 import { Shell } from '@/components/shell';
-import { queryMemory } from '@/lib/engines/memory-engine';
+import { requireUserSession } from '@/lib/supabase/session';
 
-export default function MemoryPage() {
-  const items = queryMemory();
+export const dynamic = 'force-dynamic';
+
+export default async function MemoryPage() {
+  const { supabase, user } = await requireUserSession();
+  const { data: items } = await supabase.from('memory').select('*').eq('user_id', user.id).order('updated_at', { ascending: false });
 
   return (
     <Shell title="Memory">
-      <div className="mb-6 flex flex-wrap justify-between gap-4">
-        <p className="max-w-2xl text-slate-400">Memoire partagee et persistante pour les agents, les missions et les decisions produit.</p>
-        <button className="btn-primary">Add knowledge</button>
-      </div>
+      <p className="mb-6 max-w-2xl text-slate-400">Les résultats terminés sont mémorisés automatiquement et reliés à leur mission.</p>
       <div className="card overflow-hidden p-0">
-        <div className="grid grid-cols-[1fr_auto_auto] gap-5 border-b border-line px-5 py-3 text-xs uppercase tracking-widest text-slate-500">
-          <span>Item</span>
-          <span>Collection</span>
-          <span>Updated</span>
-        </div>
-        {items.map((item) => (
-          <div key={item.id} className="grid grid-cols-[1fr_auto_auto] gap-5 px-5 py-4 text-sm">
-            <span>
-              <b className="font-medium">{item.title}</b>
-              <span className="mt-1 block text-slate-500">{item.content}</span>
-            </span>
+        {(items ?? []).length ? (items ?? []).map((item) => (
+          <div key={item.id} className="grid gap-3 border-b border-line px-5 py-4 text-sm md:grid-cols-[1fr_auto_auto]">
+            <span><b className="font-medium">{item.title}</b><span className="mt-1 block whitespace-pre-wrap text-slate-500">{item.content}</span></span>
             <span className="text-violet-300">{item.collection}</span>
-            <span className="text-slate-500">{item.updated}</span>
+            <span className="text-slate-500">{new Date(item.updated_at).toLocaleString('fr-FR')}</span>
           </div>
-        ))}
+        )) : <p className="p-8 text-sm text-slate-400">La mémoire se remplira après la première mission terminée.</p>}
       </div>
     </Shell>
   );

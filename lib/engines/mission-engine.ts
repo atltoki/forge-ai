@@ -1,6 +1,5 @@
-import { agents, missions } from '@/lib/data';
-import type { Mission, MissionStep } from '@/lib/domain/types';
-import { checkToolAccess } from './tool-manager';
+import { agents } from '@/lib/data';
+import type { MissionStep } from '@/lib/domain/types';
 
 export type MissionPlanRequest = {
   title: string;
@@ -16,14 +15,6 @@ export type MissionPlan = {
   blockedTools: string[];
 };
 
-export function listMissions() {
-  return missions;
-}
-
-export function getMission(id: string): Mission | undefined {
-  return missions.find((mission) => mission.id === id);
-}
-
 export function planMission(request: MissionPlanRequest): MissionPlan {
   const manager = agents.find((agent) => agent.id === 'manager') ?? agents[0];
   const worker = request.preferredAgentId
@@ -33,37 +24,32 @@ export function planMission(request: MissionPlanRequest): MissionPlan {
   const steps: MissionStep[] = [
     {
       id: 'plan-1',
-      title: 'Clarifier l objectif et les criteres de succes',
+      title: 'Analyser l’objectif et les critères de succès',
       agentId: manager.id,
       toolIds: ['supabase'],
       status: 'queued',
     },
     {
       id: 'plan-2',
-      title: 'Executer la mission avec les outils autorises',
+      title: 'Rechercher et vérifier les informations publiques',
       agentId: worker.id,
-      toolIds: worker.tools,
+      toolIds: ['web-search'],
       status: 'queued',
     },
     {
       id: 'plan-3',
-      title: 'Sauvegarder le resultat et mettre a jour le dashboard',
+      title: 'Sauvegarder le résultat et mettre à jour le dashboard',
       agentId: manager.id,
       toolIds: ['supabase'],
       status: 'queued',
     },
   ];
 
-  const blockedTools = steps
-    .flatMap((step) => step.toolIds)
-    .filter((toolId, index, list) => list.indexOf(toolId) === index)
-    .filter((toolId) => !checkToolAccess({ toolId, permission: 'read' }).allowed);
-
   return {
     title: request.title,
     objective: request.objective,
     manager: manager.id,
     steps,
-    blockedTools,
+    blockedTools: [],
   };
 }

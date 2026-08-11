@@ -8,12 +8,14 @@ export default function AuthPage() {
   const [email, setEmail] = useState('');
   const [status, setStatus] = useState('Vérification de la configuration Supabase...');
   const [isReady, setIsReady] = useState(false);
+  const [isConnected, setIsConnected] = useState(false);
 
   useEffect(() => {
     try {
       const supabase = createSupabaseBrowserClient();
       supabase.auth.getUser().then(({ data }) => {
         setIsReady(true);
+        setIsConnected(Boolean(data.user));
         setStatus(data.user ? `Connecté avec ${data.user.email}` : 'Supabase Auth est prêt. Envoie-toi un lien magique.');
       });
     } catch {
@@ -26,15 +28,24 @@ export default function AuthPage() {
 
     try {
       const supabase = createSupabaseBrowserClient();
+      const requestedNext = new URLSearchParams(window.location.search).get('next') ?? '/missions';
+      const next = requestedNext.startsWith('/') && !requestedNext.startsWith('//') ? requestedNext : '/missions';
       const { error } = await supabase.auth.signInWithOtp({
         email,
-        options: { emailRedirectTo: `${window.location.origin}/auth/callback?next=/missions` },
+        options: { emailRedirectTo: `${window.location.origin}/auth/callback?next=${encodeURIComponent(next)}` },
       });
 
       setStatus(error ? error.message : 'Lien magique envoyé. Vérifie ton email.');
     } catch {
       setStatus('Supabase n’est pas encore configuré.');
     }
+  }
+
+  async function signOut() {
+    const supabase = createSupabaseBrowserClient();
+    await supabase.auth.signOut();
+    setIsConnected(false);
+    setStatus('Déconnecté.');
   }
 
   return (
@@ -64,7 +75,14 @@ export default function AuthPage() {
             placeholder="you@company.com"
             required
           />
-          <button className="btn-primary mt-4 w-full justify-center" disabled={!isReady}>Envoyer le lien magique</button>
+          {isConnected ? (
+            <div className="mt-4 flex gap-3">
+              <a className="btn-primary flex-1 justify-center" href="/missions">Ouvrir FORGE AI</a>
+              <button type="button" className="btn-muted" onClick={signOut}>Déconnexion</button>
+            </div>
+          ) : (
+            <button className="btn-primary mt-4 w-full justify-center" disabled={!isReady}>Envoyer le lien magique</button>
+          )}
           <p className="mt-4 text-sm text-slate-400">{status}</p>
         </form>
       </section>

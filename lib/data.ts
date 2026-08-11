@@ -6,7 +6,7 @@ export const tools: Tool[] = [
     name: 'Web Search',
     slug: 'web-search',
     description: 'Recherche, synthèse et vérification de sources publiques.',
-    status: 'needs_config',
+    status: 'enabled',
     permissions: ['read', 'external_request'],
     provider: 'Cloudflare Worker',
   },
