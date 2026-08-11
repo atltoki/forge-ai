@@ -5,7 +5,8 @@ import { usePathname } from 'next/navigation';
 import { Icon } from './icons';
 
 const links = [
-  ['Tableau de bord', '/', 'grid'],
+  ['Pilotage', '/', 'grid'],
+  ['Cockpit', '/cockpit', 'bot'],
   ['Agents', '/agents', 'bot'],
   ['Missions', '/missions', 'target'],
   ['Mémoire', '/memory', 'brain'],
@@ -15,7 +16,7 @@ const links = [
   ['Réglages', '/settings', 'gear'],
 ];
 
-const mobileLinks = [links[0], links[2], links[1], links[7]];
+const mobileLinks = [links[0], links[3], links[1], links[8]];
 
 function isActive(pathname: string, href: string) {
   return href === '/' ? pathname === '/' : pathname.startsWith(href);
@@ -69,7 +70,7 @@ export function Shell({ title, children }: { title: string; children: React.Reac
           {mobileLinks.map(([label, href, icon]) => (
             <Link key={href} href={href} className={`mobile-nav-link ${isActive(pathname, href) ? 'mobile-nav-link-active' : ''}`} aria-current={isActive(pathname, href) ? 'page' : undefined}>
               <Icon name={icon} size={20} />
-              <span>{label === 'Tableau de bord' ? 'Accueil' : label}</span>
+              <span>{label === 'Pilotage' ? 'Accueil' : label}</span>
             </Link>
           ))}
         </nav>
