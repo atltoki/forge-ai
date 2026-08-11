@@ -37,4 +37,12 @@ describe('prospect result parsing', () => {
     expect(contact.phone).toBe('+351 210 123 456');
     expect(contact.linkedinUrl).toContain('linkedin.com/company/acme');
   });
+
+  it('rejects stale personal addresses without a decision-maker role', () => {
+    const contact = extractPublicContact([
+      { url: 'https://acme.pt/report-2015.pdf', content: 'claudia.silva@acme.pt' },
+      { url: 'https://acme.pt/team', content: 'Diretora Comercial Ana Silva ana.silva@acme.pt' },
+    ], 'https://acme.pt');
+    expect(contact.email).toBe('ana.silva@acme.pt');
+  });
 });
