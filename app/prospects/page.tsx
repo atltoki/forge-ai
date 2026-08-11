@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Shell } from '@/components/shell';
 import { Icon } from '@/components/icons';
+import { mailtoUrl } from '@/lib/domain/outreach';
 
 type ProspectStatus = 'new' | 'qualified' | 'contacted' | 'interested' | 'won' | 'archived';
 type Prospect = {
@@ -23,6 +24,17 @@ type Prospect = {
   follow_up_at: string | null;
   created_at: string;
   missions?: { title?: string } | null;
+  outreach_messages?: OutreachMessage[];
+};
+
+type OutreachMessage = {
+  id: string;
+  step: number;
+  subject: string;
+  body: string;
+  status: 'draft' | 'sent' | 'replied' | 'skipped';
+  scheduled_at: string;
+  sent_at: string | null;
 };
 
 const stages: Array<{ id: ProspectStatus; label: string; detail: string }> = [
@@ -34,6 +46,48 @@ const stages: Array<{ id: ProspectStatus; label: string; detail: string }> = [
 ];
 
 function csvValue(value: unknown) { return `"${String(value ?? '').replaceAll('"', '""')}"`; }
+
+function DraftMessage({ email, message, busy, onSave, onSent, onNotice }: {
+  email: string;
+  message: OutreachMessage;
+  busy: boolean;
+  onSave: (subject: string, body: string) => Promise<void>;
+  onSent: () => Promise<void>;
+  onNotice: (message: string) => void;
+}) {
+  const [subject, setSubject] = useState(message.subject);
+  const [body, setBody] = useState(message.body);
+  const changed = subject !== message.subject || body !== message.body;
+
+  return <details className="mt-3 rounded-xl border border-line bg-black/10 p-3">
+    <summary className="cursor-pointer list-none text-sm font-medium text-white">Message {message.step} · {new Date(message.scheduled_at).toLocaleDateString('fr-FR')}</summary>
+    <label className="mt-3 block text-xs text-slate-500" htmlFor={`outreach-subject-${message.id}`}>Objet</label><input id={`outreach-subject-${message.id}`} className="field mt-1 !py-2.5" value={subject} onChange={(event) => setSubject(event.target.value)}/>
+    <label className="mt-3 block text-xs text-slate-500" htmlFor={`outreach-body-${message.id}`}>Message</label><textarea id={`outreach-body-${message.id}`} className="field mt-1 min-h-52 resize-y text-sm leading-6" value={body} onChange={(event) => setBody(event.target.value)}/>
+    <div className="mt-4 flex flex-wrap gap-2">{changed && <button type="button" className="btn-muted !min-h-9 !px-3 !py-2" disabled={busy || !subject.trim() || !body.trim()} onClick={() => void onSave(subject, body)}><Icon name="check" size={14}/>Enregistrer</button>}<a className="btn-primary !min-h-9 !px-3 !py-2" href={mailtoUrl(email, subject, body)}><Icon name="mail" size={14}/>Ouvrir l’e-mail</a><button type="button" className="btn-muted !min-h-9 !px-3 !py-2" onClick={() => void navigator.clipboard.writeText(`${subject}\n\n${body}`).then(() => onNotice('Message copié.')).catch(() => onNotice('Copie impossible dans ce navigateur.'))}><Icon name="copy" size={14}/>Copier</button><button type="button" className="btn-muted !min-h-9 !px-3 !py-2" disabled={busy} onClick={() => void onSent()}><Icon name="check" size={14}/>Marquer envoyé</button></div>
+  </details>;
+}
+
+function OutreachComposer({ prospect, busy, onPrepare, onAction, onSave, onNotice }: {
+  prospect: Prospect;
+  busy: boolean;
+  onPrepare: () => Promise<void>;
+  onAction: (messageId: string, action: 'sent' | 'replied') => Promise<void>;
+  onSave: (messageId: string, subject: string, body: string) => Promise<void>;
+  onNotice: (message: string) => void;
+}) {
+  const messages = [...(prospect.outreach_messages ?? [])].sort((a, b) => a.step - b.step);
+  const next = messages.find((message) => message.status === 'draft');
+  const lastSent = [...messages].reverse().find((message) => message.status === 'sent');
+  const sentCount = messages.filter((message) => message.status === 'sent' || message.status === 'replied').length;
+
+  if (!prospect.email) return <div className="mt-5 rounded-xl border border-amber-300/15 bg-amber-300/[.04] p-3 text-xs text-amber-100/70">Ajoute un e-mail professionnel pour activer la séquence.</div>;
+  if (!messages.length) return <button type="button" className="btn-primary mt-5 w-full" disabled={busy} onClick={() => void onPrepare()}><Icon name="spark" size={16}/>{busy ? 'Préparation…' : 'Préparer 3 messages'}</button>;
+
+  return <div className="mt-5 rounded-2xl border border-brand/15 bg-brand/[.035] p-4">
+    <div className="flex items-center justify-between gap-3"><div><p className="text-xs font-medium text-brand">Séquence ATLYN</p><p className="mt-1 text-[11px] text-slate-500">{sentCount}/3 message{sentCount > 1 ? 's' : ''} envoyé{sentCount > 1 ? 's' : ''}</p></div>{lastSent && prospect.status !== 'interested' && <button type="button" className="btn-muted !min-h-8 !px-3 !py-1.5 text-xs" disabled={busy} onClick={() => void onAction(lastSent.id, 'replied')}>Réponse reçue</button>}</div>
+    {next ? <DraftMessage email={prospect.email} message={next} busy={busy} onSave={(subject, body) => onSave(next.id, subject, body)} onSent={() => onAction(next.id, 'sent')} onNotice={onNotice}/> : <p className="mt-3 text-sm text-slate-400">Séquence terminée. En attente d’une réponse.</p>}
+  </div>;
+}
 
 export default function ProspectsPage() {
   const [prospects, setProspects] = useState<Prospect[]>([]);
@@ -75,9 +129,45 @@ export default function ProspectsPage() {
       const response = await fetch('/api/prospects', { method: 'PATCH', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ id, ...updates }) });
       const payload = await response.json();
       if (!response.ok) throw new Error(payload.error ?? 'Mise à jour impossible');
-      setProspects((current) => current.map((prospect) => prospect.id === id ? payload.data : prospect));
+      await load();
       setNotice('Suivi enregistré.');
     } catch (error) { setNotice(error instanceof Error ? error.message : 'Mise à jour impossible'); }
+    finally { setBusyId(null); }
+  }
+
+  async function prepareOutreach(prospectId: string) {
+    setBusyId(prospectId);
+    try {
+      const response = await fetch('/api/outreach', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ prospectId }) });
+      const payload = await response.json();
+      if (!response.ok) throw new Error(payload.error ?? 'Séquence impossible');
+      await load();
+      setNotice('Trois messages personnalisés sont prêts.');
+    } catch (error) { setNotice(error instanceof Error ? error.message : 'Séquence impossible'); }
+    finally { setBusyId(null); }
+  }
+
+  async function updateOutreach(prospectId: string, messageId: string, action: 'sent' | 'replied') {
+    setBusyId(prospectId);
+    try {
+      const response = await fetch('/api/outreach', { method: 'PATCH', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ id: messageId, action }) });
+      const payload = await response.json();
+      if (!response.ok) throw new Error(payload.error ?? 'Action impossible');
+      await load();
+      setNotice(action === 'sent' ? 'Envoi enregistré et relance programmée.' : 'Réponse enregistrée. Le prospect passe en « Intéressé ».');
+    } catch (error) { setNotice(error instanceof Error ? error.message : 'Action impossible'); }
+    finally { setBusyId(null); }
+  }
+
+  async function saveOutreach(prospectId: string, messageId: string, subject: string, message: string) {
+    setBusyId(prospectId);
+    try {
+      const response = await fetch('/api/outreach', { method: 'PATCH', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ id: messageId, action: 'save', subject, message }) });
+      const payload = await response.json();
+      if (!response.ok) throw new Error(payload.error ?? 'Enregistrement impossible');
+      await load();
+      setNotice('Message personnalisé enregistré.');
+    } catch (error) { setNotice(error instanceof Error ? error.message : 'Enregistrement impossible'); }
     finally { setBusyId(null); }
   }
 
@@ -110,7 +200,8 @@ export default function ProspectsPage() {
         <div className="flex items-start justify-between gap-4"><div className="min-w-0"><p className="font-mono text-[9px] uppercase tracking-[.14em] text-slate-600">{prospect.missions?.title ?? 'Mission ATLYN'}</p><h3 className="mt-2 truncate text-lg font-semibold">{prospect.company_name}</h3><p className="mt-1 text-sm text-slate-500">{[prospect.city, prospect.activity].filter(Boolean).join(' · ') || 'Informations à compléter'}</p></div><span className={`grid h-12 w-12 shrink-0 place-items-center rounded-2xl border font-mono text-sm ${prospect.score >= 70 ? 'border-brand/25 bg-brand/10 text-brand' : 'border-amber-300/20 bg-amber-300/[.07] text-amber-200'}`}>{prospect.score}</span></div>
         {prospect.qualification && <p className="mt-4 line-clamp-3 text-sm leading-6 text-slate-400">{prospect.qualification}</p>}
         <div className="mt-5 flex flex-wrap gap-2">{prospect.website && <a href={prospect.website} target="_blank" rel="noreferrer" className="btn-muted !min-h-9 !px-3 !py-2"><Icon name="arrow" size={14}/>Site</a>}{prospect.email && <a href={`mailto:${prospect.email}`} className="btn-muted !min-h-9 !px-3 !py-2"><Icon name="mail" size={14}/>Email</a>}{prospect.phone && <a href={`tel:${prospect.phone}`} className="btn-muted !min-h-9 !px-3 !py-2"><Icon name="phone" size={14}/>Appeler</a>}{prospect.linkedin_url && <a href={prospect.linkedin_url} target="_blank" rel="noreferrer" className="btn-muted !min-h-9 !px-3 !py-2">LinkedIn</a>}</div>
-        <div className="mt-5 grid gap-3 border-t border-line pt-5 sm:grid-cols-2"><div><label className="mb-2 block text-xs text-slate-500" htmlFor={`status-${prospect.id}`}>Étape</label><select id={`status-${prospect.id}`} className="field !py-2.5" value={prospect.status} disabled={busyId === prospect.id} onChange={(event) => void updateProspect(prospect.id, { status: event.target.value as ProspectStatus })}>{stages.map((stage) => <option key={stage.id} value={stage.id}>{stage.label}</option>)}<option value="archived">Archivé</option></select></div><div><label className="mb-2 block text-xs text-slate-500" htmlFor={`follow-${prospect.id}`}>Prochaine relance</label><input id={`follow-${prospect.id}`} type="date" className="field !py-2.5" defaultValue={prospect.follow_up_at?.slice(0, 10) ?? ''} disabled={busyId === prospect.id} onBlur={(event) => void updateProspect(prospect.id, { followUpAt: event.target.value ? new Date(`${event.target.value}T09:00:00`).toISOString() : null })}/></div></div>
+        <OutreachComposer prospect={prospect} busy={busyId === prospect.id} onPrepare={() => prepareOutreach(prospect.id)} onAction={(messageId, action) => updateOutreach(prospect.id, messageId, action)} onSave={(messageId, subject, body) => saveOutreach(prospect.id, messageId, subject, body)} onNotice={setNotice}/>
+        <div className="mt-5 grid gap-3 border-t border-line pt-5 sm:grid-cols-2"><div><label className="mb-2 block text-xs text-slate-500" htmlFor={`status-${prospect.id}`}>Étape</label><select id={`status-${prospect.id}`} className="field !py-2.5" value={prospect.status} disabled={busyId === prospect.id} onChange={(event) => void updateProspect(prospect.id, { status: event.target.value as ProspectStatus })}>{stages.map((stage) => <option key={stage.id} value={stage.id}>{stage.label}</option>)}<option value="archived">Archivé</option></select></div><div><label className="mb-2 block text-xs text-slate-500" htmlFor={`follow-${prospect.id}`}>Prochaine relance</label><input id={`follow-${prospect.id}`} type="date" className="field !py-2.5" value={prospect.follow_up_at?.slice(0, 10) ?? ''} disabled={busyId === prospect.id} onChange={(event) => void updateProspect(prospect.id, { followUpAt: event.target.value ? new Date(`${event.target.value}T09:00:00`).toISOString() : null })}/></div></div>
         <div className="mt-3"><label className="mb-2 block text-xs text-slate-500" htmlFor={`notes-${prospect.id}`}>Notes commerciales</label><textarea id={`notes-${prospect.id}`} className="field min-h-20 resize-y" defaultValue={prospect.notes} placeholder="Décisionnaire, contexte, prochaine action…" onBlur={(event) => { if (event.target.value !== prospect.notes) void updateProspect(prospect.id, { notes: event.target.value }); }}/></div>
         {prospect.source_url && <a className="mt-4 truncate text-xs text-brand hover:underline" href={prospect.source_url} target="_blank" rel="noreferrer">Voir la source publique</a>}
       </article>)}
