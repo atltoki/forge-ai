@@ -15,6 +15,8 @@ export type ParsedProspect = {
   score: number;
 };
 
+export type ContactSearchResult = { title?: string; url?: string; content?: string };
+
 const FIELD_ALIASES: Record<string, keyof Omit<ParsedProspect, 'companyName' | 'score'>> = {
   site: 'website',
   'site web': 'website',
@@ -42,6 +44,25 @@ function cleanValue(value: string) {
 function urlFrom(value: string) {
   const match = value.match(/https?:\/\/[^\s)>]+/i);
   return match?.[0].replace(/[.,;]+$/, '') ?? '';
+}
+
+function websiteHost(website: string) {
+  try { return new URL(website).hostname.replace(/^www\./, '').toLowerCase(); }
+  catch { return ''; }
+}
+
+export function extractPublicContact(results: ContactSearchResult[], website = '') {
+  const host = websiteHost(website);
+  const texts = results.map((result) => `${result.title ?? ''}\n${result.content ?? ''}\n${result.url ?? ''}`);
+  const emails = [...new Set(texts.flatMap((text) => text.match(/[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}/gi) ?? []).map((email) => email.toLowerCase()))]
+    .filter((email) => !/\.(png|jpg|jpeg|gif|webp|svg)$/i.test(email));
+  const email = emails.find((candidate) => host && candidate.endsWith(`@${host}`)) ?? emails[0] ?? '';
+  const phone = texts.flatMap((text) => text.match(/(?:\+|00)351[\s.-]?(?:\d[\s.-]?){9}/g) ?? [])[0]?.replace(/\s+/g, ' ').trim() ?? '';
+  const linkedinUrl = results.find((result) => /linkedin\.com\/(company|in)\//i.test(result.url ?? ''))?.url ?? '';
+  const sourceUrl = results.find((result) => result.url && (email || phone) && `${result.title ?? ''} ${result.content ?? ''}`.toLowerCase().includes((email || phone).toLowerCase()))?.url
+    ?? results.find((result) => result.url)?.url
+    ?? '';
+  return { email, phone, linkedinUrl, sourceUrl };
 }
 
 export function scoreProspect(prospect: Omit<ParsedProspect, 'score'>, objective = '') {
