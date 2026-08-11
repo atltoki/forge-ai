@@ -84,3 +84,16 @@ export async function POST(request: NextRequest) {
 
   return NextResponse.json({ source: 'supabase', data: { ...mission, executions: [execution] }, plan }, { status: 201 });
 }
+
+export async function DELETE(request: NextRequest) {
+  const missionId = request.nextUrl.searchParams.get('id');
+  if (!missionId) return NextResponse.json({ error: 'Mission identifier is required' }, { status: 400 });
+
+  const supabase = await createSupabaseServerClient();
+  if (!supabase) return NextResponse.json({ error: 'Supabase is not configured' }, { status: 503 });
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return NextResponse.json({ error: 'Authentication required' }, { status: 401 });
+
+  const { error } = await supabase.from('missions').delete().eq('id', missionId).eq('user_id', user.id);
+  return error ? NextResponse.json({ error: error.message }, { status: 500 }) : NextResponse.json({ deleted: true, id: missionId });
+}
