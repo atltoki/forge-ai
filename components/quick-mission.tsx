@@ -22,10 +22,11 @@ export function QuickMission() {
     finally { setSubmitting(false); }
   }
 
-  return <form onSubmit={launch} className="card">
-    <div className="flex items-start justify-between gap-3"><div><p className="eyebrow">Commande rapide</p><h2 className="mt-1 font-semibold">Donner une mission à JARVIS</h2></div><span className="rounded-full border border-brand/20 bg-brand/10 px-3 py-1.5 text-xs text-brand">Atlas connecté</span></div>
-    <div className="mt-5 grid gap-4"><div><label className="mb-2 block text-xs font-medium text-slate-400" htmlFor="quick-title">Nom</label><input id="quick-title" className="field" value={title} onChange={(event) => setTitle(event.target.value)} required /></div><div><label className="mb-2 block text-xs font-medium text-slate-400" htmlFor="quick-objective">Instruction</label><textarea id="quick-objective" className="field min-h-28 resize-y" value={objective} onChange={(event) => setObjective(event.target.value)} placeholder="Ex. Trouve 20 distributeurs spécialisés en France et vérifie leurs sites…" required /></div></div>
-    <div className="mt-4 flex flex-wrap items-center gap-3"><button className="btn-primary" disabled={submitting}>{submitting ? 'Lancement…' : <><Icon name="target" /> Exécuter</>}</button><Link href="/missions" className="btn-muted">Voir les missions</Link></div>
+  return <form onSubmit={launch} className="constellation-panel overflow-hidden">
+    <div className="absolute right-0 top-0 h-40 w-40 rounded-full bg-brand/[.07] blur-3xl" aria-hidden="true" />
+    <div className="relative flex items-start justify-between gap-3"><div><p className="eyebrow">Mission composer</p><h2 className="mt-1 text-lg font-semibold">Donner une mission à JARVIS</h2><p className="mt-1 text-xs text-slate-500">Atlas collecte, vérifie et structure les sources.</p></div><span className="live-signal"><span/>Atlas connecté</span></div>
+    <div className="relative mt-6 grid gap-3"><div><label className="sr-only" htmlFor="quick-title">Nom</label><input id="quick-title" className="field border-white/[.07] bg-black/20" value={title} onChange={(event) => setTitle(event.target.value)} required /></div><div><label className="sr-only" htmlFor="quick-objective">Instruction</label><textarea id="quick-objective" className="field min-h-36 resize-y border-white/[.07] bg-black/20 text-base leading-7" value={objective} onChange={(event) => setObjective(event.target.value)} placeholder="Décris la cible, le territoire et les informations à vérifier…" required /></div></div>
+    <div className="relative mt-4 flex flex-wrap items-center gap-3"><button className="btn-primary" disabled={submitting}>{submitting ? 'Lancement…' : <><Icon name="spark" /> Lancer avec Atlas</>}</button><Link href="/missions" className="btn-ghost">Historique <Icon name="arrow" size={15}/></Link></div>
     {message && <p className="mt-4 rounded-xl border border-brand/20 bg-brand/10 p-3 text-sm text-brand">{message}</p>}{error && <p className="mt-4 rounded-xl border border-red-400/20 bg-red-500/10 p-3 text-sm text-red-300">{error}</p>}
   </form>;
 }
