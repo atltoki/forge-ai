@@ -22,6 +22,9 @@ export function Icon({ name, size = 18 }: { name: string; size?: number }) {
     spark: 'M12 2l1.7 6.3L20 10l-6.3 1.7L12 18l-1.7-6.3L4 10l6.3-1.7L12 2zm7 14l.7 2.3L22 19l-2.3.7L19 22l-.7-2.3L16 19l2.3-.7L19 16z',
     command: 'M9 6V5a3 3 0 10-3 3h12a3 3 0 10-3-3v14a3 3 0 103-3H6a3 3 0 103 3V6z',
     arrow: 'M5 12h14m-5-5l5 5-5 5',
+    users: 'M16 21v-2a4 4 0 00-4-4H6a4 4 0 00-4 4v2m7-10a4 4 0 100-8 4 4 0 000 8zm13 10v-2a4 4 0 00-3-3.87m-2-12a4 4 0 010 7.75',
+    mail: 'M4 4h16v16H4V4zm0 2l8 6 8-6',
+    phone: 'M5 3h4l2 5-3 2a15 15 0 006 6l2-3 5 2v4c0 1-1 2-2 2C10 20 4 14 3 5c0-1 1-2 2-2z',
   };
 
   return (

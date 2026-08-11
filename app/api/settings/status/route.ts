@@ -7,6 +7,8 @@ export async function GET() {
   const workerConfigured = Boolean(process.env.WORKER_API_URL && process.env.WORKER_API_TOKEN);
   const geminiResearchReady = Boolean(process.env.GEMINI_API_KEY && process.env.TAVILY_API_KEY);
   let workerReachable = false;
+  let recentErrors = 0;
+  let staleExecutions = 0;
 
   if (process.env.WORKER_API_URL) {
     try {
@@ -17,6 +19,17 @@ export async function GET() {
     }
   }
 
+  if (supabase && user) {
+    const since = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
+    const staleBefore = new Date(Date.now() - 15 * 60 * 1000).toISOString();
+    const [errorsResult, staleResult] = await Promise.all([
+      supabase.from('logs').select('id', { count: 'exact', head: true }).eq('user_id', user.id).eq('level', 'error').gte('created_at', since),
+      supabase.from('executions').select('id', { count: 'exact', head: true }).eq('user_id', user.id).in('status', ['queued', 'running']).lt('created_at', staleBefore),
+    ]);
+    recentErrors = errorsResult.count ?? 0;
+    staleExecutions = staleResult.count ?? 0;
+  }
+
   return NextResponse.json({
     services: [
       { id: 'supabase', name: 'Supabase', ready: Boolean(supabase), detail: supabase ? 'Base de données et Auth configurées' : 'Variables Supabase manquantes' },
@@ -25,6 +38,7 @@ export async function GET() {
       { id: 'research', name: 'Recherche IA', ready: Boolean(geminiResearchReady || process.env.OPENAI_API_KEY), detail: geminiResearchReady ? 'Tavily Search + Gemini 3.1 Flash Lite' : process.env.GEMINI_API_KEY ? 'Clé Tavily manquante' : process.env.OPENAI_API_KEY ? 'OpenAI avec recherche web' : 'Aucun fournisseur configuré' },
       { id: 'callbacks', name: 'Callbacks sécurisés', ready: Boolean(process.env.WORKER_CALLBACK_TOKEN && process.env.RESEARCH_AGENT_TOKEN), detail: process.env.WORKER_CALLBACK_TOKEN && process.env.RESEARCH_AGENT_TOKEN ? 'Jetons de communication présents' : 'Jetons de callback manquants' },
       { id: 'vercel', name: 'Vercel', ready: Boolean(process.env.VERCEL), detail: process.env.VERCEL ? 'Application déployée' : 'Exécution locale' },
+      { id: 'monitoring', name: 'Surveillance', ready: recentErrors === 0 && staleExecutions === 0, healthy: recentErrors === 0 && staleExecutions === 0, detail: `${recentErrors} erreur${recentErrors > 1 ? 's' : ''} sur 24 h · ${staleExecutions} exécution${staleExecutions > 1 ? 's' : ''} bloquée${staleExecutions > 1 ? 's' : ''}` },
     ],
   });
 }

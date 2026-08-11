@@ -6,10 +6,11 @@ import { Icon } from './icons';
 import { CommandPalette } from './command-palette';
 
 const links = [
-  ['Pilotage', '/', 'grid'],
+  ['Pilotage', '/dashboard', 'grid'],
   ['Cockpit', '/cockpit', 'bot'],
   ['Agents', '/agents', 'bot'],
   ['Missions', '/missions', 'target'],
+  ['Prospects', '/prospects', 'users'],
   ['Mémoire', '/memory', 'brain'],
   ['Outils', '/tools', 'wrench'],
   ['Journal', '/logs', 'logs'],
@@ -17,10 +18,10 @@ const links = [
   ['Réglages', '/settings', 'gear'],
 ];
 
-const mobileLinks = [links[0], links[3], links[1], links[8]];
+const mobileLinks = [links[0], links[3], links[4], links[9]];
 
 function isActive(pathname: string, href: string) {
-  return href === '/' ? pathname === '/' : pathname.startsWith(href);
+  return pathname === href || pathname.startsWith(`${href}/`);
 }
 
 export function Shell({ title, children }: { title: string; children: React.ReactNode }) {
@@ -29,7 +30,7 @@ export function Shell({ title, children }: { title: string; children: React.Reac
   return (
     <div className="min-h-screen md:flex">
       <aside className="hidden w-[15.5rem] shrink-0 border-r border-white/[.06] bg-[#121317]/95 p-4 md:flex md:flex-col">
-        <Link href="/" className="mb-8 flex items-center gap-3 px-2 py-1" aria-label="Accueil FORGE AI">
+        <Link href="/dashboard" className="mb-8 flex items-center gap-3 px-2 py-1" aria-label="Accueil FORGE AI">
           <span className="relative grid h-9 w-9 place-items-center rounded-xl bg-brand font-black text-[#192011] shadow-[0_0_28px_rgba(184,255,92,.18)]"><span className="absolute -right-0.5 -top-0.5 h-2 w-2 rounded-full border-2 border-[#121317] bg-violet-400"/>F</span>
           <span><span className="block font-semibold tracking-[.08em]">FORGE <b className="text-brand">AI</b></span><span className="mt-0.5 block font-mono text-[8px] uppercase tracking-[.18em] text-slate-600">Constellation OS</span></span>
         </Link>
@@ -50,7 +51,7 @@ export function Shell({ title, children }: { title: string; children: React.Reac
 
       <div className="flex min-h-screen min-w-0 flex-1 flex-col">
         <div className="sticky top-0 z-30 flex items-center justify-between border-b border-line bg-ink/90 px-4 py-3 backdrop-blur md:hidden">
-          <Link href="/" className="flex items-center gap-2" aria-label="Accueil FORGE AI">
+          <Link href="/dashboard" className="flex items-center gap-2" aria-label="Accueil FORGE AI">
             <span className="grid h-8 w-8 place-items-center rounded-lg bg-brand font-black text-[#192011]">F</span>
             <span className="text-sm font-semibold tracking-[.08em]">FORGE <b className="text-brand">AI</b></span>
           </Link>

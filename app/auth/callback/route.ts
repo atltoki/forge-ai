@@ -6,8 +6,8 @@ import { bootstrapWorkspace } from '@/lib/supabase/bootstrap';
 
 export async function GET(request: NextRequest) {
   const code = request.nextUrl.searchParams.get('code');
-  const next = request.nextUrl.searchParams.get('next') ?? '/';
-  const safeNext = next.startsWith('/') && !next.startsWith('//') ? next : '/';
+  const next = request.nextUrl.searchParams.get('next') ?? '/dashboard';
+  const safeNext = next.startsWith('/') && !next.startsWith('//') ? next : '/dashboard';
 
   if (!code) {
     return NextResponse.redirect(new URL('/auth?error=missing_code', request.url));

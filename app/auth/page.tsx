@@ -62,7 +62,7 @@ export default function AuthPage() {
               <div key={item} className="rounded-lg border border-line bg-white/[0.03] p-4 text-sm">{item}</div>
             ))}
           </div>
-          <a href="/welcome" className="btn-muted mt-6 inline-flex">Découvrir FORGE AI</a>
+          <a href="/" className="btn-muted mt-6 inline-flex">Découvrir FORGE AI</a>
         </div>
         <form onSubmit={submit} className="card">
           <p className="eyebrow">Sign in</p>
@@ -78,7 +78,7 @@ export default function AuthPage() {
           />
           {isConnected ? (
             <div className="mt-4 flex gap-3">
-              <a className="btn-primary flex-1 justify-center" href="/missions">Ouvrir FORGE AI</a>
+              <a className="btn-primary flex-1 justify-center" href="/dashboard">Ouvrir FORGE AI</a>
               <button type="button" className="btn-muted" onClick={signOut}>Déconnexion</button>
             </div>
           ) : (

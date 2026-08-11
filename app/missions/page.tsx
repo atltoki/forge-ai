@@ -1,6 +1,7 @@
 'use client';
 
 import { FormEvent, useCallback, useEffect, useMemo, useState } from 'react';
+import Link from 'next/link';
 import { Shell } from '@/components/shell';
 import { Icon } from '@/components/icons';
 import { Progress, StatusBadge } from '@/components/ui';
@@ -9,6 +10,12 @@ type Source = { title?: string; url?: string };
 type ExecutionRecord = { id: string; status: string; output: Record<string, unknown> | null; error: string | null; started_at: string | null; completed_at: string | null; created_at: string };
 type MissionRecord = { id: string; title: string; objective: string; status: string; progress: number; result: Record<string, unknown> | null; created_at: string; updated_at: string; executions?: ExecutionRecord[] };
 type Notice = { tone: 'success' | 'error' | 'info'; message: string } | null;
+
+const missionTemplates = [
+  { label: 'Transport Portugal', title: 'Prospection transport Portugal', objective: 'Trouve 20 entreprises de transport au Portugal. Pour chaque entreprise, vérifie le site web, la ville, l’activité, un contact professionnel public et ajoute les sources utilisées.' },
+  { label: 'Cabinets comptables', title: 'Cabinets comptables France', objective: 'Trouve 20 cabinets comptables indépendants en France susceptibles d’accompagner des PME. Vérifie le site, la ville, les spécialités et les coordonnées professionnelles publiques.' },
+  { label: 'Concurrents', title: 'Veille concurrentielle', objective: 'Identifie les principaux concurrents de la cible décrite, puis compare leur positionnement, leurs offres, leurs preuves publiques et leurs coordonnées professionnelles.' },
+];
 
 function resultText(result: Record<string, unknown> | null) {
   if (!result) return '';
@@ -174,6 +181,7 @@ export default function MissionsPage() {
 
       <form onSubmit={createMission} className="card mb-6 grid gap-5">
         <div className="flex flex-wrap items-start justify-between gap-3"><div><p className="eyebrow">Nouvelle mission</p><h2 className="mt-1 text-xl font-semibold">Que doit rechercher Atlas ?</h2><p className="mt-2 max-w-2xl text-sm text-slate-400">Décris la cible et les informations nécessaires. Atlas recherchera sur le web et citera ses sources.</p></div><span className="rounded-full border border-brand/20 bg-brand/[0.06] px-3 py-1.5 text-xs text-brand">Tavily Search + Gemini</span></div>
+        <div><p className="mb-2 text-xs font-medium uppercase tracking-wider text-slate-500">Démarrage rapide</p><div className="flex flex-wrap gap-2">{missionTemplates.map((template) => <button key={template.label} type="button" className="rounded-full border border-line bg-white/[.025] px-3 py-2 text-xs text-slate-400 transition hover:border-brand/20 hover:text-brand" onClick={() => { setTitle(template.title); setObjective(template.objective); }}>{template.label}</button>)}</div></div>
         <div><label htmlFor="mission-title" className="mb-2 block text-sm font-medium text-slate-300">Nom de la mission</label><input id="mission-title" value={title} onChange={(event) => setTitle(event.target.value)} className="field" placeholder="Ex. Transporteurs au Portugal" required /></div>
         <div><label htmlFor="mission-objective" className="mb-2 block text-sm font-medium text-slate-300">Objectif détaillé</label><textarea id="mission-objective" value={objective} onChange={(event) => setObjective(event.target.value)} className="field min-h-32 resize-y" placeholder="Ex. Trouve 20 entreprises, vérifie leur site, leur ville et leur activité…" required /></div>
         <div className="flex flex-wrap items-center gap-3"><button className="btn-primary w-full sm:w-auto" disabled={submitting}>{submitting ? 'Lancement…' : <><Icon name="search" /> Lancer la recherche</>}</button><p className="text-xs text-slate-500">Une mission peut prendre quelques minutes.</p></div>
@@ -197,7 +205,7 @@ export default function MissionsPage() {
               {execution?.error && <div className="mb-4 rounded-xl border border-red-500/20 bg-red-500/10 p-4 text-sm text-red-200"><p className="font-semibold">La recherche n’a pas abouti</p><p className="mt-1 text-red-300/80">{execution.error}</p></div>}
               {text && mission.status === 'completed' && <section className="rounded-2xl border border-brand/20 bg-brand/[0.035] p-4 md:p-5"><div className="mb-5 flex flex-wrap items-center justify-between gap-3"><div><p className="eyebrow">Résultat</p><h4 className="mt-1 font-semibold">Prospects trouvés par Atlas</h4></div><div className="flex flex-wrap gap-2"><button type="button" onClick={() => void copyResult(mission)} className="btn-muted !min-h-9 !px-3 !py-2"><Icon name="copy" size={15} /> Copier</button><button type="button" onClick={() => downloadMission(mission)} className="btn-muted !min-h-9 !px-3 !py-2"><Icon name="download" size={15} /> CSV</button></div></div><FormattedResult text={text} />{sources.length > 0 && <div className="mt-6 border-t border-line pt-5"><p className="text-xs font-semibold uppercase tracking-wider text-slate-500">Sources vérifiées</p><div className="mt-3 flex flex-wrap gap-2">{sources.map((source, index) => source.url ? <a key={`${source.url}-${index}`} className="max-w-full truncate rounded-full border border-line px-3 py-2 text-xs text-brand hover:bg-white/5" href={source.url} target="_blank" rel="noreferrer">{source.title || new URL(source.url).hostname}</a> : null)}</div></div>}</section>}
               {!text && !execution?.error && <p className="rounded-xl border border-line bg-white/[0.02] p-4 text-sm text-slate-400">Atlas prépare encore le résultat. Cette page se met à jour automatiquement.</p>}
-              <div className="mt-4 flex flex-wrap gap-2"><button type="button" onClick={() => void retryMission(mission)} disabled={busyId === mission.id} className="btn-muted"><Icon name="retry" size={16} /> Relancer</button><button type="button" onClick={() => void deleteMission(mission)} disabled={busyId === mission.id} className="btn-ghost text-red-300 hover:bg-red-500/10"><Icon name="trash" size={16} /> Supprimer</button></div>
+              <div className="mt-4 flex flex-wrap gap-2">{mission.status === 'completed' && <Link href="/prospects" className="btn-primary"><Icon name="users" size={16}/>Ouvrir dans Prospects</Link>}<button type="button" onClick={() => void retryMission(mission)} disabled={busyId === mission.id} className="btn-muted"><Icon name="retry" size={16} /> Relancer</button><button type="button" onClick={() => void deleteMission(mission)} disabled={busyId === mission.id} className="btn-ghost text-red-300 hover:bg-red-500/10"><Icon name="trash" size={16} /> Supprimer</button></div>
             </div>}
           </article>;
         })}</div> : <div className="p-10 text-center"><div className="mx-auto grid h-12 w-12 place-items-center rounded-2xl bg-brand/10 text-brand"><Icon name="target" /></div><h3 className="mt-4 font-semibold">Aucune mission trouvée</h3><p className="mx-auto mt-2 max-w-sm text-sm text-slate-400">Modifie les filtres ou lance une nouvelle recherche avec le formulaire.</p></div>}

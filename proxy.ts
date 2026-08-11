@@ -2,7 +2,7 @@ import { NextResponse, type NextRequest } from 'next/server';
 import { createServerClient } from '@supabase/ssr';
 import type { CookieOptions } from '@supabase/ssr';
 
-export async function middleware(request: NextRequest) {
+export async function proxy(request: NextRequest) {
   let response = NextResponse.next({ request });
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
@@ -21,16 +21,14 @@ export async function middleware(request: NextRequest) {
   });
 
   const { data: { user } } = await supabase.auth.getUser();
-
   if (!user) {
     const authUrl = new URL('/auth', request.url);
     authUrl.searchParams.set('next', `${request.nextUrl.pathname}${request.nextUrl.search}`);
     return NextResponse.redirect(authUrl);
   }
-
   return response;
 }
 
 export const config = {
-  matcher: ['/', '/agents/:path*', '/analytics/:path*', '/logs/:path*', '/memory/:path*', '/missions/:path*', '/settings/:path*', '/tools/:path*'],
+  matcher: ['/dashboard/:path*', '/cockpit/:path*', '/agents/:path*', '/analytics/:path*', '/logs/:path*', '/memory/:path*', '/missions/:path*', '/prospects/:path*', '/settings/:path*', '/tools/:path*'],
 };

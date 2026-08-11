@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createSupabaseAdminClient } from '@/lib/supabase/admin';
+import { parseProspects } from '@/lib/domain/prospects';
 
 const statuses = new Set(['running', 'completed', 'failed']);
 
@@ -45,6 +46,28 @@ export async function POST(request: NextRequest) {
     const { data: existingMemory } = await supabase.from('memory').select('id').eq('user_id', execution.user_id).eq('mission_id', body.missionId).eq('collection', 'Mission results').maybeSingle();
     if (existingMemory) await supabase.from('memory').update({ title: mission.title, content, metadata: body.output ?? {}, updated_at: now }).eq('id', existingMemory.id);
     else await supabase.from('memory').insert({ user_id: execution.user_id, mission_id: body.missionId, title: mission.title, collection: 'Mission results', content, metadata: body.output ?? {} });
+
+    const output = body.output as { result?: unknown; sources?: Array<{ url?: string }> } | null;
+    if (typeof output?.result === 'string') {
+      const prospects = parseProspects(output.result, output.sources).map((prospect) => ({
+        user_id: execution.user_id,
+        mission_id: body.missionId,
+        company_name: prospect.companyName,
+        website: prospect.website,
+        city: prospect.city,
+        activity: prospect.activity,
+        qualification: prospect.qualification,
+        contact_name: prospect.contactName,
+        email: prospect.email,
+        phone: prospect.phone,
+        linkedin_url: prospect.linkedinUrl,
+        source_url: prospect.sourceUrl,
+        score: prospect.score,
+        status: prospect.score >= 70 ? 'qualified' : 'new',
+        updated_at: now,
+      }));
+      if (prospects.length) await supabase.from('prospects').upsert(prospects, { onConflict: 'user_id,mission_id,company_name', ignoreDuplicates: false });
+    }
   }
 
   return NextResponse.json({ ok: true, executionId: body.executionId, status: body.status });

@@ -18,26 +18,30 @@ function currentAgentModel(name: string, model: string) {
 
 export default async function CockpitPage() {
   const { supabase, user } = await requireUserSession();
-  const [agentsResult, toolsResult, executionsResult, logsResult] = await Promise.all([
+  const [agentsResult, toolsResult, executionsResult, logsResult, prospectsResult] = await Promise.all([
     supabase.from('agents').select('id,name,role,model,status,objectives').eq('user_id', user.id).order('created_at'),
     supabase.from('tools').select('id,name,provider,status').eq('user_id', user.id).order('created_at'),
     supabase.from('executions').select('id,status,created_at,missions(title)').eq('user_id', user.id).order('created_at', { ascending: false }).limit(8),
     supabase.from('logs').select('id,level,source,message,created_at').eq('user_id', user.id).order('created_at', { ascending: false }).limit(8),
+    supabase.from('prospects').select('id,status,follow_up_at', { count: 'exact' }).eq('user_id', user.id),
   ]);
   const agents = agentsResult.data ?? [];
   const tools = toolsResult.data ?? [];
   const executions = executionsResult.data ?? [];
   const logs = logsResult.data ?? [];
   const activeExecutions = executions.filter((execution) => ['queued', 'running'].includes(execution.status));
+  const prospects = prospectsResult.data ?? [];
+  const followUps = prospects.filter((prospect) => prospect.follow_up_at && new Date(prospect.follow_up_at).getTime() <= Date.now()).length;
 
   return <Shell title="Cockpit JARVIS">
     <div className="grid gap-5 xl:grid-cols-12"><div className="xl:col-span-7"><QuickMission /></div><div className="xl:col-span-5"><AgentConstellation agents={agents} tools={tools} /></div></div>
 
-    <section className="mt-5 grid gap-4 sm:grid-cols-2 xl:grid-cols-4" aria-label="État du cockpit">
+    <section className="mt-5 grid gap-4 sm:grid-cols-2 xl:grid-cols-5" aria-label="État du cockpit">
       <SignalMetric label="Agents actifs" value={`${agents.filter((agent) => agent.status === 'active').length}/${agents.length}`} detail="Réseau disponible" icon="bot" />
       <SignalMetric label="Connecteurs" value={`${tools.filter((tool) => tool.status === 'enabled').length}/${tools.length}`} detail="Services opérationnels" icon="wrench" tone="violet" />
       <SignalMetric label="En orbite" value={String(activeExecutions.length)} detail="Exécutions Cloudflare" icon="spark" tone="blue" />
       <SignalMetric label="Réussites" value={String(executions.filter((execution) => execution.status === 'completed').length)} detail={`${executions.length} exécutions observées`} icon="check" tone="amber" />
+      <SignalMetric label="Pipeline" value={String(prospectsResult.count ?? prospects.length)} detail={`${followUps} relance${followUps > 1 ? 's' : ''} à traiter`} icon="users" tone="brand" />
     </section>
 
     <div className="mt-5 grid gap-5 xl:grid-cols-12">

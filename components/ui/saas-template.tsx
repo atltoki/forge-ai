@@ -33,7 +33,7 @@ const Navigation = React.memo(() => {
   return <header className="fixed top-0 z-50 w-full border-b border-white/[.07] bg-black/75 backdrop-blur-xl">
     <nav className="mx-auto max-w-7xl px-5 py-4 md:px-8" aria-label="Navigation publique">
       <div className="flex items-center justify-between">
-        <Link href="/welcome" className="flex items-center gap-3" aria-label="Accueil FORGE AI"><span className="relative grid h-9 w-9 place-items-center rounded-xl bg-[#b8ff5c] font-black text-[#17200d]"><span className="absolute -right-0.5 -top-0.5 h-2 w-2 rounded-full border-2 border-black bg-violet-400" />F</span><span className="font-semibold tracking-[.08em] text-white">FORGE <b className="text-[#b8ff5c]">AI</b></span></Link>
+        <Link href="/" className="flex items-center gap-3" aria-label="Accueil FORGE AI"><span className="relative grid h-9 w-9 place-items-center rounded-xl bg-[#b8ff5c] font-black text-[#17200d]"><span className="absolute -right-0.5 -top-0.5 h-2 w-2 rounded-full border-2 border-black bg-violet-400" />F</span><span className="font-semibold tracking-[.08em] text-white">FORGE <b className="text-[#b8ff5c]">AI</b></span></Link>
 
         <div className="absolute left-1/2 top-1/2 hidden -translate-x-1/2 -translate-y-1/2 items-center justify-center gap-8 md:flex">
           <a href="#getting-started" className="text-sm text-white/50 transition-colors hover:text-white">Découvrir</a>
@@ -41,12 +41,12 @@ const Navigation = React.memo(() => {
           <a href="#results" className="text-sm text-white/50 transition-colors hover:text-white">Résultats</a>
         </div>
 
-        <div className="hidden items-center gap-2 md:flex"><Button type="button" variant="ghost" size="sm" onClick={() => navigate('/auth')}>Connexion</Button><Button type="button" variant="default" size="sm" onClick={() => navigate('/auth?next=/')}>Ouvrir FORGE</Button></div>
+        <div className="hidden items-center gap-2 md:flex"><Button type="button" variant="ghost" size="sm" onClick={() => navigate('/auth')}>Connexion</Button><Button type="button" variant="default" size="sm" onClick={() => navigate('/auth?next=/dashboard')}>Ouvrir FORGE</Button></div>
         <button type="button" className="rounded-lg p-2 text-white md:hidden" onClick={() => setMobileMenuOpen((value) => !value)} aria-label="Ouvrir le menu" aria-expanded={mobileMenuOpen} aria-controls="public-mobile-menu">{mobileMenuOpen ? <X size={23} /> : <Menu size={23} />}</button>
       </div>
     </nav>
 
-    {mobileMenuOpen && <div id="public-mobile-menu" className="border-t border-white/[.07] bg-black/95 px-5 py-5 backdrop-blur-xl md:hidden"><div className="flex flex-col gap-1">{[['Découvrir', '#getting-started'], ['Agents', '#agents'], ['Résultats', '#results']].map(([label, href]) => <a key={href} href={href} className="rounded-xl px-3 py-3 text-sm text-white/60 hover:bg-white/[.05] hover:text-white" onClick={() => setMobileMenuOpen(false)}>{label}</a>)}<div className="mt-3 grid gap-2 border-t border-white/[.07] pt-4"><Button type="button" variant="ghost" onClick={() => navigate('/auth')}>Connexion</Button><Button type="button" variant="default" onClick={() => navigate('/auth?next=/')}>Ouvrir FORGE</Button></div></div></div>}
+    {mobileMenuOpen && <div id="public-mobile-menu" className="border-t border-white/[.07] bg-black/95 px-5 py-5 backdrop-blur-xl md:hidden"><div className="flex flex-col gap-1">{[['Découvrir', '#getting-started'], ['Agents', '#agents'], ['Résultats', '#results']].map(([label, href]) => <a key={href} href={href} className="rounded-xl px-3 py-3 text-sm text-white/60 hover:bg-white/[.05] hover:text-white" onClick={() => setMobileMenuOpen(false)}>{label}</a>)}<div className="mt-3 grid gap-2 border-t border-white/[.07] pt-4"><Button type="button" variant="ghost" onClick={() => navigate('/auth')}>Connexion</Button><Button type="button" variant="default" onClick={() => navigate('/auth?next=/dashboard')}>Ouvrir FORGE</Button></div></div></div>}
   </header>;
 });
 Navigation.displayName = 'Navigation';
@@ -62,7 +62,7 @@ const Hero = React.memo(() => {
 
       <h1 className="relative max-w-4xl bg-gradient-to-b from-white via-white to-white/45 bg-clip-text px-2 text-center text-4xl font-medium leading-[1.05] tracking-[-.055em] text-transparent md:text-6xl lg:text-7xl">Transformez une intention<br />en mission accomplie.</h1>
       <p className="relative mt-7 max-w-2xl text-center text-sm leading-7 text-white/45 md:text-base">Un workspace d’agents IA qui recherche, vérifie et structure vos informations. Orion orchestre. Atlas explore. Vous gardez le contrôle.</p>
-      <div className="relative mt-9 flex flex-wrap items-center justify-center gap-3"><Button type="button" variant="gradient" size="lg" onClick={() => navigate('/auth?next=/')}><Sparkles size={17} />Lancer une mission</Button><Button type="button" variant="secondary" size="lg" onClick={() => navigate('/auth')}>Se connecter <ArrowRight size={16} /></Button></div>
+      <div className="relative mt-9 flex flex-wrap items-center justify-center gap-3"><Button type="button" variant="gradient" size="lg" onClick={() => navigate('/auth?next=/missions')}><Sparkles size={17} />Lancer une mission</Button><Button type="button" variant="secondary" size="lg" onClick={() => navigate('/auth')}>Se connecter <ArrowRight size={16} /></Button></div>
 
       <div className="relative mt-20 w-full max-w-6xl pb-10">
         <div className="pointer-events-none absolute left-1/2 top-[-18%] h-80 w-[90%] -translate-x-1/2 overflow-hidden rounded-full opacity-30 blur-3xl" aria-hidden="true"><img src="https://images.unsplash.com/photo-1518770660439-4636190af475?auto=format&fit=crop&w=1600&q=70" alt="" className="h-full w-full object-cover" /></div>
