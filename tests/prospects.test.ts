@@ -19,4 +19,9 @@ describe('prospect result parsing', () => {
     expect(prospectsToCsv([prospect])).toContain('"A, ""B"""');
     expect(scoreProspect(prospect)).toBe(20);
   });
+
+  it('downgrades prospects clearly outside the requested market', () => {
+    const [prospect] = parseProspects('## Transport Test\nSite : https://example.ca\nVille : Québec\nActivité : Transport\nQualification : Entreprise située au Canada.', [], 'Trouve des entreprises au Portugal');
+    expect(prospect.score).toBeLessThanOrEqual(40);
+  });
 });

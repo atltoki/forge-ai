@@ -44,7 +44,7 @@ function urlFrom(value: string) {
   return match?.[0].replace(/[.,;]+$/, '') ?? '';
 }
 
-export function scoreProspect(prospect: Omit<ParsedProspect, 'score'>) {
+export function scoreProspect(prospect: Omit<ParsedProspect, 'score'>, objective = '') {
   let score = 20;
   if (prospect.website) score += 20;
   if (prospect.city) score += 10;
@@ -52,12 +52,17 @@ export function scoreProspect(prospect: Omit<ParsedProspect, 'score'>) {
   if (prospect.qualification) score += 15;
   if (prospect.email || prospect.phone || prospect.contactName) score += 15;
   if (prospect.sourceUrl) score += 5;
+  const assessment = `${prospect.qualification} ${prospect.city}`.toLocaleLowerCase('fr-FR');
+  const negative = /hors cible|ne correspond pas|non pertinent|à exclure|a exclure/.test(assessment);
+  const requestedPortugal = /\bportugal\b/i.test(objective);
+  const clearlyOutsidePortugal = /\b(canada|québec|quebec|france|belgique|suisse)\b/i.test(assessment);
+  if (negative || (requestedPortugal && clearlyOutsidePortugal)) return Math.min(score, 40);
   return Math.min(score, 100);
 }
 
-export function parseProspects(result: string, fallbackSources: Array<{ url?: string }> = []): ParsedProspect[] {
+export function parseProspects(result: string, fallbackSources: Array<{ url?: string }> = [], objective = ''): ParsedProspect[] {
   const blocks = result.split(/^##\s+/m).slice(1);
-  const fallbackUrl = fallbackSources.find((source) => source.url)?.url ?? '';
+  const fallbackUrl = fallbackSources.find((source) => source.url?.startsWith('http'))?.url ?? '';
 
   return blocks.flatMap((block) => {
     const [heading = '', ...lines] = block.trim().split('\n');
@@ -83,12 +88,12 @@ export function parseProspects(result: string, fallbackSources: Array<{ url?: st
       const alias = FIELD_ALIASES[match[1].trim().toLocaleLowerCase('fr-FR')];
       if (!alias) continue;
       const value = cleanValue(match[2]);
-      if (alias === 'website' || alias === 'linkedinUrl' || alias === 'sourceUrl') prospect[alias] = urlFrom(value) || value;
+      if (alias === 'website' || alias === 'linkedinUrl' || alias === 'sourceUrl') prospect[alias] = urlFrom(value);
       else prospect[alias] = value;
     }
 
     if (!prospect.sourceUrl) prospect.sourceUrl = prospect.website || fallbackUrl;
-    return [{ ...prospect, score: scoreProspect(prospect) }];
+    return [{ ...prospect, score: scoreProspect(prospect, objective) }];
   });
 }
 

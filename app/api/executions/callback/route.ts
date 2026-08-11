@@ -34,7 +34,7 @@ export async function POST(request: NextRequest) {
 
   const { error: executionError } = await supabase.from('executions').update(executionUpdate).eq('id', body.executionId).eq('mission_id', body.missionId);
   if (executionError) return NextResponse.json({ error: executionError.message }, { status: 500 });
-  const { data: mission, error: missionError } = await supabase.from('missions').update(missionUpdate).eq('id', body.missionId).eq('user_id', execution.user_id).select('title').single();
+  const { data: mission, error: missionError } = await supabase.from('missions').update(missionUpdate).eq('id', body.missionId).eq('user_id', execution.user_id).select('title,objective').single();
   if (missionError) return NextResponse.json({ error: missionError.message }, { status: 500 });
 
   const level = body.status === 'failed' ? 'error' : 'info';
@@ -49,7 +49,7 @@ export async function POST(request: NextRequest) {
 
     const output = body.output as { result?: unknown; sources?: Array<{ url?: string }> } | null;
     if (typeof output?.result === 'string') {
-      const prospects = parseProspects(output.result, output.sources).map((prospect) => ({
+      const prospects = parseProspects(output.result, output.sources, mission.objective).map((prospect) => ({
         user_id: execution.user_id,
         mission_id: body.missionId,
         company_name: prospect.companyName,
@@ -66,7 +66,7 @@ export async function POST(request: NextRequest) {
         status: prospect.score >= 70 ? 'qualified' : 'new',
         updated_at: now,
       }));
-      if (prospects.length) await supabase.from('prospects').upsert(prospects, { onConflict: 'user_id,mission_id,company_name', ignoreDuplicates: false });
+      if (prospects.length) await supabase.from('prospects').upsert(prospects, { onConflict: 'user_id,mission_id,company_name', ignoreDuplicates: true });
     }
   }
 

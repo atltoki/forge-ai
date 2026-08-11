@@ -21,7 +21,7 @@ export async function POST(request: NextRequest) {
   const context = await authenticatedClient();
   if ('error' in context) return context.error;
   const body = await request.json().catch(() => ({})) as { missionId?: string };
-  let query = context.supabase.from('missions').select('id,title,result').eq('user_id', context.user.id).eq('status', 'completed');
+  let query = context.supabase.from('missions').select('id,title,objective,result').eq('user_id', context.user.id).eq('status', 'completed');
   if (body.missionId) query = query.eq('id', body.missionId);
   const { data: missions, error: missionError } = await query;
   if (missionError) return NextResponse.json({ error: missionError.message }, { status: 500 });
@@ -29,7 +29,7 @@ export async function POST(request: NextRequest) {
   const records = (missions ?? []).flatMap((mission) => {
     const result = mission.result as { result?: unknown; sources?: Array<{ url?: string }> } | null;
     if (typeof result?.result !== 'string') return [];
-    return parseProspects(result.result, result.sources).map((prospect) => ({
+    return parseProspects(result.result, result.sources, mission.objective).map((prospect) => ({
       user_id: context.user.id,
       mission_id: mission.id,
       company_name: prospect.companyName,
@@ -49,7 +49,14 @@ export async function POST(request: NextRequest) {
   });
 
   if (!records.length) return NextResponse.json({ imported: 0 });
-  const { data, error } = await context.supabase.from('prospects').upsert(records, { onConflict: 'user_id,mission_id,company_name', ignoreDuplicates: false }).select('*');
+  const { data: existing } = await context.supabase.from('prospects').select('mission_id,company_name,status,notes,follow_up_at').eq('user_id', context.user.id);
+  const existingMap = new Map((existing ?? []).map((prospect) => [`${prospect.mission_id}:${prospect.company_name}`, prospect]));
+  const merged = records.map((record) => {
+    const previous = existingMap.get(`${record.mission_id}:${record.company_name}`);
+    const progressed = previous && ['contacted', 'interested', 'won', 'archived'].includes(previous.status);
+    return { ...record, status: progressed ? previous.status : record.status, notes: previous?.notes ?? '', follow_up_at: previous?.follow_up_at ?? null };
+  });
+  const { data, error } = await context.supabase.from('prospects').upsert(merged, { onConflict: 'user_id,mission_id,company_name', ignoreDuplicates: false }).select('*');
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
   await context.supabase.from('logs').insert({ user_id: context.user.id, level: 'info', source: 'ATLYN Pipeline', message: `${data.length} prospect${data.length > 1 ? 's' : ''} synchronisé${data.length > 1 ? 's' : ''}.` });
   return NextResponse.json({ imported: data.length, data });
