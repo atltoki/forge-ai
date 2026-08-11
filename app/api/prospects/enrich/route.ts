@@ -36,8 +36,8 @@ export async function POST(request: NextRequest) {
   if (!prospect.email && contact.email) updates.email = contact.email;
   if (!prospect.phone && contact.phone) updates.phone = contact.phone;
   if (!prospect.linkedin_url && contact.linkedinUrl) updates.linkedin_url = contact.linkedinUrl;
-  if (contact.sourceUrl) updates.source_url = contact.sourceUrl;
   if (Object.keys(updates).length === 1) return NextResponse.json({ data: prospect, found: false });
+  if (contact.sourceUrl) updates.source_url = contact.sourceUrl;
 
   const { data, error } = await supabase.from('prospects').update(updates).eq('id', prospect.id).eq('user_id', user.id).select('*').single();
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
