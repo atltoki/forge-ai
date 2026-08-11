@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { parseProspects, prospectsToCsv, scoreProspect } from '@/lib/domain/prospects';
+import { extractPublicContact, parseProspects, prospectsToCsv, scoreProspect } from '@/lib/domain/prospects';
 
 describe('prospect result parsing', () => {
   it('turns Atlas markdown into qualified records', () => {
@@ -25,5 +25,16 @@ describe('prospect result parsing', () => {
     expect(prospect.score).toBeLessThanOrEqual(40);
     const [tunisian] = parseProspects('## STS\nSite : https://example.tn\nActivité : Transport\nQualification : Entreprise publique tunisienne.', [], 'Entreprises au Portugal');
     expect(tunisian.score).toBeLessThanOrEqual(40);
+  });
+
+  it('extracts and prioritizes official professional contact details', () => {
+    const contact = extractPublicContact([
+      { url: 'https://directory.test/acme', content: 'Contact directory@example.test' },
+      { url: 'https://acme.pt/contact', content: 'E-mail geral@acme.pt · Telefone +351 210 123 456' },
+      { url: 'https://linkedin.com/company/acme' },
+    ], 'https://www.acme.pt');
+    expect(contact.email).toBe('geral@acme.pt');
+    expect(contact.phone).toBe('+351 210 123 456');
+    expect(contact.linkedinUrl).toContain('linkedin.com/company/acme');
   });
 });
