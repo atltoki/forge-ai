@@ -19,6 +19,9 @@ export function Icon({ name, size = 18 }: { name: string; size?: number }) {
     chevron: 'M9 6l6 6-6 6',
     check: 'M5 12l4 4L19 6',
     clock: 'M12 7v5l3 2m6-2a9 9 0 11-18 0 9 9 0 0118 0z',
+    spark: 'M12 2l1.7 6.3L20 10l-6.3 1.7L12 18l-1.7-6.3L4 10l6.3-1.7L12 2zm7 14l.7 2.3L22 19l-2.3.7L19 22l-.7-2.3L16 19l2.3-.7L19 16z',
+    command: 'M9 6V5a3 3 0 10-3 3h12a3 3 0 10-3-3v14a3 3 0 103-3H6a3 3 0 103 3V6z',
+    arrow: 'M5 12h14m-5-5l5 5-5 5',
   };
 
   return (
