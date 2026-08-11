@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createSupabaseAdminClient } from '@/lib/supabase/admin';
 
+export const maxDuration = 60;
+
 type Source = { title: string; url: string };
 type ResearchResult = { result: string; sources: Source[]; model: string; provider: 'gemini' | 'openai'; searchProvider?: 'tavily' };
 
