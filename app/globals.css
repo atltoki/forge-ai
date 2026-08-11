@@ -3,9 +3,14 @@
 @tailwind utilities;
 
 @import url('https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600;9..40,700&display=swap');
-@layer base { * { @apply border-line; } body { @apply min-h-screen bg-ink text-slate-100 antialiased; } button, a, input, textarea, select { @apply focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand/70 focus-visible:ring-offset-2 focus-visible:ring-offset-ink; } }
+@layer base {
+  :root { color-scheme: dark; --forge-panel: 24 25 29; --forge-line: 42 43 49; --forge-brand: 184 255 92; }
+  * { @apply border-line; }
+  body { @apply min-h-screen bg-ink text-slate-100 antialiased; background-image: radial-gradient(circle at 72% -10%, rgba(120, 82, 205, .08), transparent 34%), radial-gradient(circle at 28% 110%, rgba(184, 255, 92, .045), transparent 30%); }
+  button, a, input, textarea, select { @apply focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand/70 focus-visible:ring-offset-2 focus-visible:ring-offset-ink; }
+}
 @layer components {
-  .card { @apply rounded-2xl border bg-panel p-5 shadow-glow md:p-6; }
+  .card { @apply rounded-2xl border bg-panel p-5 shadow-glow md:p-6; background-image: linear-gradient(145deg, rgba(255,255,255,.018), transparent 42%); }
   .eyebrow { @apply font-mono text-[11px] font-medium uppercase tracking-[.1em] text-brand; }
   .btn { @apply inline-flex min-h-11 items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-sm font-semibold transition disabled:cursor-not-allowed disabled:opacity-50; }
   .btn-primary { @apply btn bg-brand text-[#202513] hover:bg-[#d2ff91]; }
@@ -17,4 +22,16 @@
   .mobile-nav-link { @apply flex min-h-14 flex-col items-center justify-center gap-1 rounded-xl text-[10px] font-medium text-slate-500; }
   .mobile-nav-link-active { @apply bg-brand/10 text-brand; }
   .result-card { @apply rounded-xl border border-line bg-[#121316] p-4; }
+  .constellation-panel { @apply relative rounded-[1.4rem] border border-white/[.075] bg-[#17181d]/95 p-5 shadow-[0_18px_50px_rgba(0,0,0,.18)] md:p-6; background-image: linear-gradient(145deg, rgba(255,255,255,.025), transparent 42%); }
+  .metric-tile { @apply relative overflow-hidden rounded-[1.25rem] border border-white/[.07] bg-[#17181d] p-5 transition duration-300 hover:-translate-y-0.5 hover:border-white/[.12]; }
+  .metric-tile::after { content: ''; @apply absolute inset-x-5 bottom-0 h-px; background: linear-gradient(90deg, rgba(184,255,92,.5), transparent); }
+  .command-trigger { @apply flex min-h-11 w-full items-center justify-between gap-3 rounded-2xl border border-white/[.075] bg-white/[.025] px-4 text-left text-sm text-slate-500 transition hover:border-white/[.13] hover:bg-white/[.045] hover:text-slate-300; }
+  .live-signal { @apply inline-flex items-center gap-2 rounded-full border border-brand/15 bg-brand/[.06] px-2.5 py-1 font-mono text-[9px] uppercase tracking-[.12em] text-brand; }
+  .live-signal > span { @apply h-1.5 w-1.5 rounded-full bg-brand; animation: forge-pulse 1.8s ease-in-out infinite; }
 }
+
+.constellation-grid { background-image: linear-gradient(rgba(255,255,255,.025) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,.025) 1px, transparent 1px); background-size: 28px 28px; mask-image: radial-gradient(circle at center, black, transparent 82%); }
+.mission-spotlight::before { content: ''; position: absolute; width: 26rem; height: 26rem; right: -10rem; top: -17rem; border-radius: 999px; background: radial-gradient(circle, rgba(184,255,92,.15), rgba(167,139,250,.04) 48%, transparent 70%); pointer-events: none; }
+.mission-spotlight::after { content: ''; position: absolute; inset: 0; background-image: linear-gradient(90deg, transparent 0 49.8%, rgba(255,255,255,.025) 50%, transparent 50.2%), linear-gradient(transparent 0 49.8%, rgba(255,255,255,.025) 50%, transparent 50.2%); background-size: 52px 52px; mask-image: linear-gradient(to left, black, transparent 65%); pointer-events: none; }
+@keyframes forge-pulse { 0%,100% { box-shadow: 0 0 0 0 rgba(184,255,92,.3); opacity: .7; } 50% { box-shadow: 0 0 0 5px rgba(184,255,92,0); opacity: 1; } }
+@media (prefers-reduced-motion: reduce) { *, *::before, *::after { scroll-behavior: auto !important; animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; } }
