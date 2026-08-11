@@ -6,7 +6,8 @@ export function Metric({ label, value, detail }: { label: string; value: string;
 }
 
 export function Progress({ value }: { value: number }) {
-  return <div className="h-1.5 overflow-hidden rounded-full bg-white/10"><div className="h-full rounded-full bg-brand" style={{ width: `${value}%` }} /></div>;
+  const safeValue = Math.max(0, Math.min(100, value));
+  return <div className="h-1.5 overflow-hidden rounded-full bg-white/10" role="progressbar" aria-valuemin={0} aria-valuemax={100} aria-valuenow={safeValue} aria-label={`Progression : ${safeValue} %`}><div className="h-full rounded-full bg-brand transition-all duration-500" style={{ width: `${safeValue}%` }} /></div>;
 }
 
 export function Empty({ title, copy }: { title: string; copy: string }) {
@@ -14,11 +15,19 @@ export function Empty({ title, copy }: { title: string; copy: string }) {
 }
 
 export function StatusBadge({ value }: { value: string }) {
+  const labels: Record<string, string> = {
+    queued: 'En attente', planning: 'Préparation', running: 'Recherche en cours', review: 'À vérifier', completed: 'Terminée', failed: 'Échec',
+    enabled: 'Actif', active: 'Actif', idle: 'Disponible', paused: 'En pause', error: 'Erreur', disabled: 'Désactivé', needs_config: 'À configurer', warning: 'Attention',
+  };
   const tone = value === 'enabled' || value === 'active' || value === 'completed'
-    ? 'bg-mint/10 text-mint'
-    : value === 'needs_config' || value === 'warning' || value === 'review'
-      ? 'bg-amber-400/10 text-amber-300'
-      : 'bg-white/5 text-slate-400';
+    ? 'border-mint/20 bg-mint/10 text-mint'
+    : value === 'failed' || value === 'error'
+      ? 'border-red-400/20 bg-red-500/10 text-red-300'
+      : value === 'running' || value === 'planning'
+        ? 'border-brand/20 bg-brand/10 text-brand'
+        : value === 'needs_config' || value === 'warning' || value === 'review'
+          ? 'border-amber-400/20 bg-amber-400/10 text-amber-300'
+          : 'border-white/5 bg-white/5 text-slate-400';
 
-  return <span className={`rounded-full px-2.5 py-1 text-xs ${tone}`}>{value.replace('_', ' ')}</span>;
+  return <span className={`inline-flex items-center rounded-full border px-2.5 py-1 text-xs font-medium ${tone}`}>{labels[value] ?? value.replaceAll('_', ' ')}</span>;
 }
