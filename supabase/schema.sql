@@ -124,6 +124,26 @@ create table if not exists public.prospects (
   unique (user_id, mission_id, company_name)
 );
 
+create table if not exists public.outreach_messages (
+  id uuid primary key default gen_random_uuid(),
+  user_id uuid not null references auth.users(id) on delete cascade,
+  prospect_id uuid not null references public.prospects(id) on delete cascade,
+  step smallint not null,
+  channel text not null default 'email',
+  subject text not null default '',
+  body text not null default '',
+  status text not null default 'draft',
+  scheduled_at timestamptz not null default now(),
+  sent_at timestamptz,
+  replied_at timestamptz,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now(),
+  constraint outreach_step_check check (step between 1 and 3),
+  constraint outreach_channel_check check (channel in ('email')),
+  constraint outreach_status_check check (status in ('draft', 'sent', 'replied', 'skipped')),
+  unique (user_id, prospect_id, step)
+);
+
 alter table public.users enable row level security;
 alter table public.tools enable row level security;
 alter table public.agents enable row level security;
@@ -132,6 +152,7 @@ alter table public.memory enable row level security;
 alter table public.executions enable row level security;
 alter table public.logs enable row level security;
 alter table public.prospects enable row level security;
+alter table public.outreach_messages enable row level security;
 
 create policy "users read own profile" on public.users for select using (auth.uid() = id);
 create policy "users update own profile" on public.users for update using (auth.uid() = id) with check (auth.uid() = id);
@@ -144,9 +165,12 @@ create policy "users manage own memory" on public.memory for all using (auth.uid
 create policy "users manage own executions" on public.executions for all using (auth.uid() = user_id) with check (auth.uid() = user_id);
 create policy "users manage own logs" on public.logs for all using (auth.uid() = user_id) with check (auth.uid() = user_id);
 create policy "users manage own prospects" on public.prospects for all to authenticated using ((select auth.uid()) = user_id) with check ((select auth.uid()) = user_id);
+create policy "users manage own outreach" on public.outreach_messages for all to authenticated using ((select auth.uid()) = user_id) with check ((select auth.uid()) = user_id);
 
 grant select, insert, update, delete on public.prospects to authenticated;
 grant all on public.prospects to service_role;
+grant select, insert, update, delete on public.outreach_messages to authenticated;
+grant all on public.outreach_messages to service_role;
 
 create index if not exists agents_user_id_idx on public.agents(user_id);
 create index if not exists missions_user_id_status_idx on public.missions(user_id, status);
@@ -156,3 +180,5 @@ create index if not exists logs_user_id_created_at_idx on public.logs(user_id, c
 create index if not exists prospects_user_id_status_idx on public.prospects(user_id, status);
 create index if not exists prospects_user_id_follow_up_idx on public.prospects(user_id, follow_up_at) where follow_up_at is not null;
 create index if not exists prospects_mission_id_idx on public.prospects(mission_id);
+create index if not exists outreach_user_status_schedule_idx on public.outreach_messages(user_id, status, scheduled_at);
+create index if not exists outreach_prospect_id_idx on public.outreach_messages(prospect_id);
