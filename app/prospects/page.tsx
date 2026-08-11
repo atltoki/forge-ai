@@ -123,7 +123,7 @@ export default function ProspectsPage() {
     load().then((count) => count === 0 ? sync(true) : undefined).catch((error) => setNotice(error instanceof Error ? error.message : 'Prospects indisponibles')).finally(() => setLoading(false));
   }, [load, sync]);
 
-  async function updateProspect(id: string, updates: { status?: ProspectStatus; notes?: string; followUpAt?: string | null }) {
+  async function updateProspect(id: string, updates: { status?: ProspectStatus; notes?: string; followUpAt?: string | null; contactName?: string; email?: string; phone?: string }) {
     setBusyId(id);
     try {
       const response = await fetch('/api/prospects', { method: 'PATCH', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ id, ...updates }) });
@@ -132,6 +132,18 @@ export default function ProspectsPage() {
       await load();
       setNotice('Suivi enregistré.');
     } catch (error) { setNotice(error instanceof Error ? error.message : 'Mise à jour impossible'); }
+    finally { setBusyId(null); }
+  }
+
+  async function enrichProspect(prospectId: string) {
+    setBusyId(prospectId);
+    try {
+      const response = await fetch('/api/prospects/enrich', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ prospectId }) });
+      const payload = await response.json();
+      if (!response.ok) throw new Error(payload.error ?? 'Enrichissement impossible');
+      await load();
+      setNotice(payload.found ? 'Coordonnées professionnelles trouvées.' : 'Aucune coordonnée publique fiable trouvée. Tu peux la saisir manuellement.');
+    } catch (error) { setNotice(error instanceof Error ? error.message : 'Enrichissement impossible'); }
     finally { setBusyId(null); }
   }
 
@@ -200,6 +212,7 @@ export default function ProspectsPage() {
         <div className="flex items-start justify-between gap-4"><div className="min-w-0"><p className="font-mono text-[9px] uppercase tracking-[.14em] text-slate-600">{prospect.missions?.title ?? 'Mission ATLYN'}</p><h3 className="mt-2 truncate text-lg font-semibold">{prospect.company_name}</h3><p className="mt-1 text-sm text-slate-500">{[prospect.city, prospect.activity].filter(Boolean).join(' · ') || 'Informations à compléter'}</p></div><span className={`grid h-12 w-12 shrink-0 place-items-center rounded-2xl border font-mono text-sm ${prospect.score >= 70 ? 'border-brand/25 bg-brand/10 text-brand' : 'border-amber-300/20 bg-amber-300/[.07] text-amber-200'}`}>{prospect.score}</span></div>
         {prospect.qualification && <p className="mt-4 line-clamp-3 text-sm leading-6 text-slate-400">{prospect.qualification}</p>}
         <div className="mt-5 flex flex-wrap gap-2">{prospect.website && <a href={prospect.website} target="_blank" rel="noreferrer" className="btn-muted !min-h-9 !px-3 !py-2"><Icon name="arrow" size={14}/>Site</a>}{prospect.email && <a href={`mailto:${prospect.email}`} className="btn-muted !min-h-9 !px-3 !py-2"><Icon name="mail" size={14}/>Email</a>}{prospect.phone && <a href={`tel:${prospect.phone}`} className="btn-muted !min-h-9 !px-3 !py-2"><Icon name="phone" size={14}/>Appeler</a>}{prospect.linkedin_url && <a href={prospect.linkedin_url} target="_blank" rel="noreferrer" className="btn-muted !min-h-9 !px-3 !py-2">LinkedIn</a>}</div>
+        <details className="mt-4 rounded-xl border border-line p-3"><summary className="cursor-pointer list-none text-xs text-slate-400">Coordonnées professionnelles</summary><div className="mt-3 grid gap-2"><input className="field !py-2.5" defaultValue={prospect.contact_name} placeholder="Nom du contact" aria-label={`Contact ${prospect.company_name}`} onBlur={(event) => { if (event.target.value !== prospect.contact_name) void updateProspect(prospect.id, { contactName: event.target.value }); }}/><input className="field !py-2.5" type="email" defaultValue={prospect.email} placeholder="E-mail professionnel" aria-label={`E-mail ${prospect.company_name}`} onBlur={(event) => { if (event.target.value !== prospect.email) void updateProspect(prospect.id, { email: event.target.value }); }}/><input className="field !py-2.5" type="tel" defaultValue={prospect.phone} placeholder="Téléphone" aria-label={`Téléphone ${prospect.company_name}`} onBlur={(event) => { if (event.target.value !== prospect.phone) void updateProspect(prospect.id, { phone: event.target.value }); }}/>{!prospect.email && <button type="button" className="btn-muted mt-1 w-full" disabled={busyId === prospect.id} onClick={() => void enrichProspect(prospect.id)}><Icon name="spark" size={15}/>{busyId === prospect.id ? 'Recherche…' : 'Rechercher les coordonnées publiques'}</button>}</div></details>
         <OutreachComposer prospect={prospect} busy={busyId === prospect.id} onPrepare={() => prepareOutreach(prospect.id)} onAction={(messageId, action) => updateOutreach(prospect.id, messageId, action)} onSave={(messageId, subject, body) => saveOutreach(prospect.id, messageId, subject, body)} onNotice={setNotice}/>
         <div className="mt-5 grid gap-3 border-t border-line pt-5 sm:grid-cols-2"><div><label className="mb-2 block text-xs text-slate-500" htmlFor={`status-${prospect.id}`}>Étape</label><select id={`status-${prospect.id}`} className="field !py-2.5" value={prospect.status} disabled={busyId === prospect.id} onChange={(event) => void updateProspect(prospect.id, { status: event.target.value as ProspectStatus })}>{stages.map((stage) => <option key={stage.id} value={stage.id}>{stage.label}</option>)}<option value="archived">Archivé</option></select></div><div><label className="mb-2 block text-xs text-slate-500" htmlFor={`follow-${prospect.id}`}>Prochaine relance</label><input id={`follow-${prospect.id}`} type="date" className="field !py-2.5" value={prospect.follow_up_at?.slice(0, 10) ?? ''} disabled={busyId === prospect.id} onChange={(event) => void updateProspect(prospect.id, { followUpAt: event.target.value ? new Date(`${event.target.value}T09:00:00`).toISOString() : null })}/></div></div>
         <div className="mt-3"><label className="mb-2 block text-xs text-slate-500" htmlFor={`notes-${prospect.id}`}>Notes commerciales</label><textarea id={`notes-${prospect.id}`} className="field min-h-20 resize-y" defaultValue={prospect.notes} placeholder="Décisionnaire, contexte, prochaine action…" onBlur={(event) => { if (event.target.value !== prospect.notes) void updateProspect(prospect.id, { notes: event.target.value }); }}/></div>
