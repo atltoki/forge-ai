@@ -54,8 +54,9 @@ function websiteHost(website: string) {
 export function extractPublicContact(results: ContactSearchResult[], website = '') {
   const host = websiteHost(website);
   const texts = results.map((result) => `${result.title ?? ''}\n${result.content ?? ''}\n${result.url ?? ''}`);
+  const unsuitableMailbox = /^(etica|ethics|privacy|privacidade|dpo|rgpd|abuse|legal|compliance|recrutamento|careers|jobs|rh|hr|noreply|no-reply)@/i;
   const emails = [...new Set(texts.flatMap((text) => text.match(/[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}/gi) ?? []).map((email) => email.toLowerCase()))]
-    .filter((email) => !/\.(png|jpg|jpeg|gif|webp|svg)$/i.test(email));
+    .filter((email) => !/\.(png|jpg|jpeg|gif|webp|svg)$/i.test(email) && !unsuitableMailbox.test(email));
   const email = emails.find((candidate) => host && candidate.endsWith(`@${host}`)) ?? emails[0] ?? '';
   const phone = texts.flatMap((text) => text.match(/(?:\+|00)351[\s.-]?(?:\d[\s.-]?){9}/g) ?? [])[0]?.replace(/\s+/g, ' ').trim() ?? '';
   const linkedinUrl = results.find((result) => /linkedin\.com\/(company|in)\//i.test(result.url ?? ''))?.url ?? '';
