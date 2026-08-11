@@ -30,7 +30,7 @@ describe('prospect result parsing', () => {
   it('extracts and prioritizes official professional contact details', () => {
     const contact = extractPublicContact([
       { url: 'https://directory.test/acme', content: 'Contact directory@example.test' },
-      { url: 'https://acme.pt/contact', content: 'E-mail geral@acme.pt · Telefone +351 210 123 456' },
+      { url: 'https://acme.pt/contact', content: 'Éthique etica@acme.pt · E-mail geral@acme.pt · Telefone +351 210 123 456' },
       { url: 'https://linkedin.com/company/acme' },
     ], 'https://www.acme.pt');
     expect(contact.email).toBe('geral@acme.pt');
