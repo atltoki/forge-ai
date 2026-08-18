@@ -54,6 +54,15 @@
   .approval-item { @apply flex w-full items-center gap-3 rounded-2xl border border-transparent p-3 text-slate-400 transition hover:border-white/[.08] hover:bg-white/[.03]; }
   .approval-item.active { @apply border-brand/20 bg-brand/[.055] text-white; }
   .offer-price-card { @apply relative overflow-hidden rounded-[2rem] border border-brand/20 bg-[#0b121b]/90 p-7 shadow-[0_0_80px_rgba(139,92,246,.12)]; }
+  .offer-product-card { @apply relative flex min-h-[38rem] flex-col overflow-hidden rounded-[2rem] border border-white/[.075] bg-[#0a1018]/90 p-7 transition duration-300 hover:-translate-y-1 hover:border-white/[.16]; }
+  .offer-product-card::before { content: ''; @apply absolute inset-x-7 top-0 h-px; background: linear-gradient(90deg, transparent, var(--offer-accent), transparent); }
+  .offer-product-card::after { content: ''; @apply pointer-events-none absolute -right-20 -top-20 h-48 w-48 rounded-full opacity-10 blur-3xl; background: var(--offer-accent); }
+  .offer-accent-lime { --offer-accent: #b8ff5c; }
+  .offer-accent-violet { --offer-accent: #a78bfa; }
+  .offer-accent-cyan { --offer-accent: #38bdf8; }
+  .offer-featured { @apply border-brand/20 bg-[#0c151b]; box-shadow: 0 0 80px rgba(184,255,92,.06); }
+  .offer-badge { @apply absolute right-5 top-5 rounded-full border border-brand/20 bg-brand/10 px-3 py-1 font-mono text-[8px] uppercase tracking-[.1em] text-brand; }
+  .offer-check { @apply grid h-5 w-5 shrink-0 place-items-center rounded-full bg-white/[.055] text-brand; }
 }
 .offer-page { background: radial-gradient(circle at 72% 25%,rgba(139,92,246,.17),transparent 28%),radial-gradient(circle at 18% 10%,rgba(184,255,92,.08),transparent 24%),#05080e; }
 
