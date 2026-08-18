@@ -28,10 +28,30 @@
   .command-trigger { @apply flex min-h-11 w-full items-center justify-between gap-3 rounded-2xl border border-white/[.075] bg-white/[.025] px-4 text-left text-sm text-slate-500 transition hover:border-white/[.13] hover:bg-white/[.045] hover:text-slate-300; }
   .live-signal { @apply inline-flex items-center gap-2 rounded-full border border-brand/15 bg-brand/[.06] px-2.5 py-1 font-mono text-[9px] uppercase tracking-[.12em] text-brand; }
   .live-signal > span { @apply h-1.5 w-1.5 rounded-full bg-brand; animation: forge-pulse 1.8s ease-in-out infinite; }
+  .profit-kpi { @apply flex min-h-32 flex-col rounded-2xl border border-white/[.07] bg-black/20 p-4 transition duration-300 hover:-translate-y-1 hover:border-white/[.14] hover:bg-white/[.03]; }
+  .profit-kpi > span { @apply text-xs text-slate-500; }
+  .profit-kpi > strong { @apply mt-3 text-2xl font-semibold tracking-[-.04em] text-white; }
+  .profit-kpi > small { @apply mt-auto pt-2 text-[10px] text-slate-600; }
+  .profit-kpi.accent { @apply border-brand/20 bg-brand/[.055]; }
+  .profit-kpi.accent > strong { @apply text-brand; }
+  .profit-filter { @apply rounded-full border border-white/[.07] bg-black/20 px-4 py-2 text-xs text-slate-500 transition hover:border-white/[.14] hover:text-slate-200; }
+  .profit-filter.active { @apply border-brand/25 bg-brand/10 text-brand; }
+  .opportunity-card { @apply flex flex-col gap-4 rounded-2xl border border-white/[.065] bg-black/15 p-4 transition duration-300 hover:border-brand/20 hover:bg-white/[.025] md:flex-row md:items-center; }
+  .opportunity-rank { @apply grid h-9 w-9 shrink-0 place-items-center rounded-xl border border-white/[.07] bg-white/[.03] font-mono text-[10px] text-slate-600; }
+  .opportunity-type { @apply rounded-full border px-2 py-0.5 font-mono text-[8px] uppercase tracking-[.08em]; }
+  .opportunity-type.revenu { @apply border-brand/20 bg-brand/[.07] text-brand; }
+  .opportunity-type.temps { @apply border-sky-400/20 bg-sky-400/[.07] text-sky-300; }
+  .opportunity-type.risque { @apply border-violet-400/20 bg-violet-400/[.07] text-violet-300; }
+  .opportunity-type.approval { @apply border-amber-400/20 bg-amber-400/[.07] text-amber-300; }
 }
 
 .constellation-grid { background-image: linear-gradient(rgba(255,255,255,.025) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,.025) 1px, transparent 1px); background-size: 28px 28px; mask-image: radial-gradient(circle at center, black, transparent 82%); }
 .mission-spotlight::before { content: ''; position: absolute; width: 26rem; height: 26rem; right: -10rem; top: -17rem; border-radius: 999px; background: radial-gradient(circle, rgba(184,255,92,.15), rgba(167,139,250,.04) 48%, transparent 70%); pointer-events: none; }
 .mission-spotlight::after { content: ''; position: absolute; inset: 0; background-image: linear-gradient(90deg, transparent 0 49.8%, rgba(255,255,255,.025) 50%, transparent 50.2%), linear-gradient(transparent 0 49.8%, rgba(255,255,255,.025) 50%, transparent 50.2%); background-size: 52px 52px; mask-image: linear-gradient(to left, black, transparent 65%); pointer-events: none; }
 @keyframes forge-pulse { 0%,100% { box-shadow: 0 0 0 0 rgba(184,255,92,.3); opacity: .7; } 50% { box-shadow: 0 0 0 5px rgba(184,255,92,0); opacity: 1; } }
+.profit-command { isolation: isolate; }
+.profit-orb { position: absolute; border-radius: 999px; filter: blur(60px); opacity: .16; pointer-events: none; animation: profit-drift 9s ease-in-out infinite alternate; }
+.profit-orb-one { width: 22rem; height: 22rem; right: -7rem; top: -12rem; background: #b8ff5c; }
+.profit-orb-two { width: 16rem; height: 16rem; left: 28%; bottom: -12rem; background: #8b5cf6; animation-delay: -4s; }
+@keyframes profit-drift { from { transform: translate3d(-8px,-4px,0) scale(.94); } to { transform: translate3d(12px,10px,0) scale(1.08); } }
 @media (prefers-reduced-motion: reduce) { *, *::before, *::after { scroll-behavior: auto !important; animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; } }

@@ -5,6 +5,7 @@ import { ActivityTimeline, AgentConstellation, SignalMetric } from '@/components
 import { StatusBadge } from '@/components/ui';
 import { Icon } from '@/components/icons';
 import { requireUserSession } from '@/lib/supabase/session';
+import { ProfitCommandCenter } from '@/components/profit-command-center';
 
 export const dynamic = 'force-dynamic';
 
@@ -23,7 +24,7 @@ export default async function CockpitPage() {
     supabase.from('tools').select('id,name,provider,status').eq('user_id', user.id).order('created_at'),
     supabase.from('executions').select('id,status,created_at,missions(title)').eq('user_id', user.id).order('created_at', { ascending: false }).limit(8),
     supabase.from('logs').select('id,level,source,message,created_at').eq('user_id', user.id).order('created_at', { ascending: false }).limit(8),
-    supabase.from('prospects').select('id,status,follow_up_at', { count: 'exact' }).eq('user_id', user.id),
+    supabase.from('prospects').select('id,company_name,status,score,follow_up_at', { count: 'exact' }).eq('user_id', user.id).order('score', { ascending: false }),
   ]);
   const agents = agentsResult.data ?? [];
   const tools = toolsResult.data ?? [];
@@ -32,8 +33,19 @@ export default async function CockpitPage() {
   const activeExecutions = executions.filter((execution) => ['queued', 'running'].includes(execution.status));
   const prospects = prospectsResult.data ?? [];
   const followUps = prospects.filter((prospect) => prospect.follow_up_at && new Date(prospect.follow_up_at).getTime() <= Date.now()).length;
+  const statusProbability: Record<string, number> = { new: .1, qualified: .25, contacted: .4, interested: .65, won: 1, archived: 0 };
+  const pipelineValue = Math.round(prospects.reduce((sum, prospect) => sum + (Math.max(prospect.score ?? 0, 20) * 45 * (statusProbability[prospect.status] ?? .1)), 0));
+  const topProspects = prospects.filter((prospect) => prospect.status !== 'archived' && prospect.status !== 'won').slice(0, 3);
+  const opportunities = [
+    ...topProspects.map((prospect, index) => ({ id: `prospect-${prospect.id}`, title: `Faire avancer ${prospect.company_name}`, detail: prospect.follow_up_at && new Date(prospect.follow_up_at).getTime() <= Date.now() ? 'Relance arrivée à échéance : prépare un message personnalisé à valider.' : 'Prospect prioritaire détecté dans le pipeline commercial.', type: 'revenu' as const, value: Math.round((prospect.score || 20) * 45 * (statusProbability[prospect.status] ?? .1)), minutes: 25, score: Math.min(98, 60 + (prospect.score || 0) / 3 - index * 4), action: 'Préparer', objective: `Analyse le prospect ${prospect.company_name}, recherche les signaux utiles disponibles, puis prépare une relance commerciale personnalisée. Ne rien envoyer sans validation humaine.`, requiresApproval: true })),
+    { id: 'gmail-triage', title: 'Trier la boîte de réception', detail: 'Identifier les prospects chauds, demandes urgentes, factures et messages sans réponse.', type: 'temps' as const, value: 0, minutes: 45, score: 84, action: 'Analyser', objective: 'Analyse les priorités de la boîte Gmail connectée. Classe les messages par urgence et valeur commerciale, puis prépare une synthèse actionnable. Ne réponds à aucun message sans validation humaine.', requiresApproval: false },
+    { id: 'meeting-briefs', title: 'Préparer les prochains rendez-vous', detail: 'Transformer le calendrier en briefs courts avec contexte, enjeux et prochaine meilleure action.', type: 'temps' as const, value: 0, minutes: 35, score: 78, action: 'Préparer', objective: 'Analyse les prochains rendez-vous Google Calendar et prépare pour chacun un brief avec contexte, objectifs, points de vigilance et questions à poser.', requiresApproval: false },
+    { id: 'drive-memory', title: 'Consolider la mémoire métier', detail: 'Repérer dans Drive les offres, tarifs, procédures et documents clients à mémoriser.', type: 'risque' as const, value: 0, minutes: 60, score: 73, action: 'Scanner', objective: 'Analyse les documents professionnels pertinents dans Google Drive et propose les connaissances durables à ajouter à la mémoire métier. Ne modifie ni ne supprime aucun fichier.', requiresApproval: false },
+  ].sort((a, b) => b.score - a.score);
 
   return <Shell title="Cockpit JARVIS">
+    <ProfitCommandCenter opportunities={opportunities} pipelineValue={pipelineValue} hoursSaved={Math.round(opportunities.reduce((sum, item) => sum + item.minutes, 0) / 60 * 10) / 10} approvalCount={opportunities.filter((item) => item.requiresApproval).length} />
+    <div className="mt-5" />
     <div className="grid gap-5 xl:grid-cols-12"><div className="xl:col-span-7"><QuickMission /></div><div className="xl:col-span-5"><AgentConstellation agents={agents} tools={tools} /></div></div>
 
     <section className="mt-5 grid gap-4 sm:grid-cols-2 xl:grid-cols-5" aria-label="État du cockpit">
