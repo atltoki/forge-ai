@@ -155,6 +155,24 @@ create table if not exists public.google_connections (
   updated_at timestamptz not null default now()
 );
 
+create table if not exists public.autopilot_settings (
+  user_id uuid primary key references auth.users(id) on delete cascade,
+  enabled boolean not null default false,
+  monthly_goal integer not null default 3000,
+  offer_name text not null default 'ATLYN Autopilote',
+  offer_price integer not null default 89,
+  ideal_customer text not null default 'Indépendant B2B francophone vendant une prestation à forte valeur et souhaitant déléguer sa prospection',
+  markets text[] not null default array['France','Belgique','Suisse','Luxembourg','Canada francophone'],
+  daily_prospect_limit smallint not null default 5,
+  require_approval boolean not null default true,
+  last_run_at timestamptz,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now(),
+  constraint autopilot_goal_check check (monthly_goal between 100 and 1000000),
+  constraint autopilot_price_check check (offer_price between 1 and 100000),
+  constraint autopilot_limit_check check (daily_prospect_limit between 1 and 100)
+);
+
 alter table public.users enable row level security;
 alter table public.tools enable row level security;
 alter table public.agents enable row level security;
@@ -165,6 +183,7 @@ alter table public.logs enable row level security;
 alter table public.prospects enable row level security;
 alter table public.outreach_messages enable row level security;
 alter table public.google_connections enable row level security;
+alter table public.autopilot_settings enable row level security;
 
 create policy "users read own profile" on public.users for select using (auth.uid() = id);
 create policy "users update own profile" on public.users for update using (auth.uid() = id) with check (auth.uid() = id);
@@ -185,6 +204,9 @@ grant select, insert, update, delete on public.outreach_messages to authenticate
 grant all on public.outreach_messages to service_role;
 revoke all on public.google_connections from anon, authenticated;
 grant all on public.google_connections to service_role;
+create policy "users manage own autopilot" on public.autopilot_settings for all to authenticated using ((select auth.uid()) = user_id) with check ((select auth.uid()) = user_id);
+grant select, insert, update, delete on public.autopilot_settings to authenticated;
+grant all on public.autopilot_settings to service_role;
 
 create index if not exists agents_user_id_idx on public.agents(user_id);
 create index if not exists missions_user_id_status_idx on public.missions(user_id, status);

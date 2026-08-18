@@ -47,6 +47,10 @@
   .priority-stage { @apply rounded-[1.25rem] border border-white/[.07] bg-[#080d15]/80 p-5; }
   .priority-row { @apply flex w-full items-center gap-3 overflow-hidden rounded-2xl border border-white/[.07] bg-[#0d1621] pr-4 text-left transition duration-300 hover:-translate-y-0.5 hover:border-brand/25 hover:bg-[#111c29] disabled:opacity-60; }
   .priority-number { @apply grid min-h-[5.15rem] w-12 shrink-0 place-items-center bg-gradient-to-b from-brand/20 to-brand/[.06] text-2xl font-semibold text-brand; }
+  .autopilot-switch { @apply inline-flex items-center gap-2 rounded-full border border-white/[.08] bg-white/[.03] px-3 py-2 text-xs text-slate-500 transition; }
+  .autopilot-switch > span { @apply h-2.5 w-2.5 rounded-full bg-slate-600; }
+  .autopilot-switch.active { @apply border-brand/25 bg-brand/[.08] text-brand; }
+  .autopilot-switch.active > span { @apply bg-brand shadow-[0_0_14px_rgba(184,255,92,.7)]; }
 }
 
 .constellation-grid { background-image: linear-gradient(rgba(255,255,255,.025) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,.025) 1px, transparent 1px); background-size: 28px 28px; mask-image: radial-gradient(circle at center, black, transparent 82%); }

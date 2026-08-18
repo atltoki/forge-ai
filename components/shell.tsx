@@ -7,6 +7,7 @@ import { CommandPalette } from './command-palette';
 
 const links = [
   ['Commande', '/cockpit', 'grid'],
+  ['Autopilote', '/autopilot', 'spark'],
   ['Pilotage', '/dashboard', 'bot'],
   ['Agents', '/agents', 'bot'],
   ['Missions', '/missions', 'target'],
@@ -18,7 +19,7 @@ const links = [
   ['Paramètres', '/settings', 'gear'],
 ];
 
-const mobileLinks = [links[0], links[3], links[4], links[9]];
+const mobileLinks = [links[0], links[1], links[4], links[10]];
 
 function isActive(pathname: string, href: string) {
   return pathname === href || pathname.startsWith(`${href}/`);
