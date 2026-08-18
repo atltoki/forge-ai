@@ -7,7 +7,7 @@ export const runtime = 'nodejs';
 type LeadInput = {
   name?: unknown; email?: unknown; company?: unknown; website?: unknown;
   phone?: unknown; product?: unknown; budget?: unknown; message?: unknown;
-  source?: unknown; consent?: unknown;
+  source?: unknown; consent?: unknown; test?: unknown;
 };
 
 const text = (value: unknown, max: number) => typeof value === 'string' ? value.trim().slice(0, max) : '';
@@ -36,6 +36,7 @@ export async function POST(request: NextRequest) {
   const { data: users, error: usersError } = await admin.auth.admin.listUsers({ page: 1, perPage: 100 });
   const owner = users?.users.find((user) => user.email?.toLowerCase() === ownerEmail);
   if (usersError || !owner) return NextResponse.json({ error: 'Lead owner unavailable' }, { status: 503 });
+  if (body?.test === true) return NextResponse.json({ accepted: true, test: true });
 
   const now = new Date().toISOString();
   const companyName = company || name;
