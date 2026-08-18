@@ -140,7 +140,7 @@ create table if not exists public.outreach_messages (
   updated_at timestamptz not null default now(),
   constraint outreach_step_check check (step between 1 and 3),
   constraint outreach_channel_check check (channel in ('email')),
-  constraint outreach_status_check check (status in ('draft', 'sent', 'replied', 'skipped')),
+  constraint outreach_status_check check (status in ('draft', 'approved', 'sent', 'replied', 'skipped')),
   unique (user_id, prospect_id, step)
 );
 

@@ -8,6 +8,7 @@ import { CommandPalette } from './command-palette';
 const links = [
   ['Commande', '/cockpit', 'grid'],
   ['Autopilote', '/autopilot', 'spark'],
+  ['Validations', '/approvals', 'shield'],
   ['Pilotage', '/dashboard', 'bot'],
   ['Agents', '/agents', 'bot'],
   ['Missions', '/missions', 'target'],
@@ -19,7 +20,7 @@ const links = [
   ['Paramètres', '/settings', 'gear'],
 ];
 
-const mobileLinks = [links[0], links[1], links[4], links[10]];
+const mobileLinks = [links[0], links[1], links[2], links[11]];
 
 function isActive(pathname: string, href: string) {
   return pathname === href || pathname.startsWith(`${href}/`);

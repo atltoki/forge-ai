@@ -51,6 +51,8 @@
   .autopilot-switch > span { @apply h-2.5 w-2.5 rounded-full bg-slate-600; }
   .autopilot-switch.active { @apply border-brand/25 bg-brand/[.08] text-brand; }
   .autopilot-switch.active > span { @apply bg-brand shadow-[0_0_14px_rgba(184,255,92,.7)]; }
+  .approval-item { @apply flex w-full items-center gap-3 rounded-2xl border border-transparent p-3 text-slate-400 transition hover:border-white/[.08] hover:bg-white/[.03]; }
+  .approval-item.active { @apply border-brand/20 bg-brand/[.055] text-white; }
 }
 
 .constellation-grid { background-image: linear-gradient(rgba(255,255,255,.025) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,.025) 1px, transparent 1px); background-size: 28px 28px; mask-image: radial-gradient(circle at center, black, transparent 82%); }

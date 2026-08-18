@@ -10,6 +10,13 @@ async function authenticatedClient() {
   return { supabase, user };
 }
 
+export async function GET() {
+  const context = await authenticatedClient();
+  if ('error' in context) return context.error;
+  const { data, error } = await context.supabase.from('outreach_messages').select('*, prospects!inner(id,company_name,contact_name,email,score,status,mission_id)').eq('user_id', context.user.id).in('status', ['draft', 'approved']).order('scheduled_at');
+  return error ? NextResponse.json({ error: error.message }, { status: 500 }) : NextResponse.json({ data });
+}
+
 export async function POST(request: NextRequest) {
   const context = await authenticatedClient();
   if ('error' in context) return context.error;
@@ -55,7 +62,10 @@ export async function PATCH(request: NextRequest) {
   if (findError || !message) return NextResponse.json({ error: 'Message not found' }, { status: 404 });
   const updates: Record<string, unknown> = { updated_at: new Date().toISOString() };
 
-  if (body.action === 'sent') {
+  if (body.action === 'approved') {
+    updates.status = 'approved';
+    if (typeof body.subject === 'string' && typeof body.message === 'string') { updates.subject = body.subject.trim().slice(0, 300); updates.body = body.message.trim().slice(0, 10000); }
+  } else if (body.action === 'sent') {
     updates.status = 'sent';
     updates.sent_at = new Date().toISOString();
   } else if (body.action === 'replied') {

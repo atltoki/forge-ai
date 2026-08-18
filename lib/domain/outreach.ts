@@ -1,4 +1,4 @@
-export const outreachStatuses = ['draft', 'sent', 'replied', 'skipped'] as const;
+export const outreachStatuses = ['draft', 'approved', 'sent', 'replied', 'skipped'] as const;
 export type OutreachStatus = typeof outreachStatuses[number];
 
 export type OutreachProspect = {
