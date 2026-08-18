@@ -24,15 +24,19 @@ export async function POST(request: NextRequest) {
   if (!admin) return NextResponse.json({ error: 'Stockage indisponible' }, { status: 503 });
   if (event.type === 'checkout.session.completed') {
     const details = object.customer_details as { email?: string } | null;
-    const email = details?.email || String(object.customer_email || '');
+    const email = (details?.email || String(object.customer_email || '')).toLowerCase();
+    const metadata = (object.metadata || {}) as Record<string, string>;
+    const productKey = metadata.offer_key || 'atlyn';
     const { data: profile } = await admin.from('users').select('id').eq('email', email).maybeSingle();
-    if (profile) await admin.from('customer_subscriptions').upsert({ user_id: profile.id, stripe_customer_id: String(object.customer || ''), stripe_subscription_id: String(object.subscription || ''), status: 'active', updated_at: new Date().toISOString() }, { onConflict: 'user_id' });
+    await admin.from('customer_purchases').upsert({ user_id: profile?.id || null, customer_email: email, product_key: productKey, stripe_checkout_session_id: String(object.id || ''), stripe_customer_id: String(object.customer || ''), stripe_subscription_id: String(object.subscription || '') || null, status: object.payment_status === 'paid' ? 'paid' : 'active', updated_at: new Date().toISOString() }, { onConflict: 'stripe_checkout_session_id' });
+    if (profile && object.subscription) await admin.from('customer_subscriptions').upsert({ user_id: profile.id, stripe_customer_id: String(object.customer || ''), stripe_subscription_id: String(object.subscription || ''), status: 'active', updated_at: new Date().toISOString() }, { onConflict: 'user_id' });
   }
   if (event.type.startsWith('customer.subscription.')) {
     const subscriptionId = String(object.id || '');
     const status = String(object.status || 'inactive');
     const periodEnd = typeof object.current_period_end === 'number' ? new Date(object.current_period_end * 1000).toISOString() : null;
     await admin.from('customer_subscriptions').update({ status, current_period_end: periodEnd, updated_at: new Date().toISOString() }).eq('stripe_subscription_id', subscriptionId);
+    await admin.from('customer_purchases').update({ status: status === 'active' || status === 'trialing' ? status : status === 'canceled' ? 'canceled' : 'past_due', updated_at: new Date().toISOString() }).eq('stripe_subscription_id', subscriptionId);
   }
   return NextResponse.json({ received: true });
 }
