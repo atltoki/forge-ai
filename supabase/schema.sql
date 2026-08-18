@@ -173,6 +173,28 @@ create table if not exists public.autopilot_settings (
   constraint autopilot_limit_check check (daily_prospect_limit between 1 and 100)
 );
 
+create table if not exists public.customer_subscriptions (
+  user_id uuid primary key references auth.users(id) on delete cascade,
+  stripe_customer_id text unique,
+  stripe_subscription_id text unique,
+  status text not null default 'inactive',
+  current_period_end timestamptz,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now()
+);
+
+create table if not exists public.client_profiles (
+  user_id uuid primary key references auth.users(id) on delete cascade,
+  business_name text not null default '',
+  offer text not null default '',
+  target_customer text not null default '',
+  average_deal_value integer not null default 1000,
+  tone text not null default 'professionnel et direct',
+  onboarding_complete boolean not null default false,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now()
+);
+
 alter table public.users enable row level security;
 alter table public.tools enable row level security;
 alter table public.agents enable row level security;
@@ -184,6 +206,8 @@ alter table public.prospects enable row level security;
 alter table public.outreach_messages enable row level security;
 alter table public.google_connections enable row level security;
 alter table public.autopilot_settings enable row level security;
+alter table public.customer_subscriptions enable row level security;
+alter table public.client_profiles enable row level security;
 
 create policy "users read own profile" on public.users for select using (auth.uid() = id);
 create policy "users update own profile" on public.users for update using (auth.uid() = id) with check (auth.uid() = id);
@@ -207,6 +231,12 @@ grant all on public.google_connections to service_role;
 create policy "users manage own autopilot" on public.autopilot_settings for all to authenticated using ((select auth.uid()) = user_id) with check ((select auth.uid()) = user_id);
 grant select, insert, update, delete on public.autopilot_settings to authenticated;
 grant all on public.autopilot_settings to service_role;
+create policy "users read own subscription" on public.customer_subscriptions for select to authenticated using ((select auth.uid()) = user_id);
+create policy "users manage own client profile" on public.client_profiles for all to authenticated using ((select auth.uid()) = user_id) with check ((select auth.uid()) = user_id);
+grant select on public.customer_subscriptions to authenticated;
+grant all on public.customer_subscriptions to service_role;
+grant select, insert, update, delete on public.client_profiles to authenticated;
+grant all on public.client_profiles to service_role;
 
 create index if not exists agents_user_id_idx on public.agents(user_id);
 create index if not exists missions_user_id_status_idx on public.missions(user_id, status);

@@ -53,7 +53,9 @@
   .autopilot-switch.active > span { @apply bg-brand shadow-[0_0_14px_rgba(184,255,92,.7)]; }
   .approval-item { @apply flex w-full items-center gap-3 rounded-2xl border border-transparent p-3 text-slate-400 transition hover:border-white/[.08] hover:bg-white/[.03]; }
   .approval-item.active { @apply border-brand/20 bg-brand/[.055] text-white; }
+  .offer-price-card { @apply relative overflow-hidden rounded-[2rem] border border-brand/20 bg-[#0b121b]/90 p-7 shadow-[0_0_80px_rgba(139,92,246,.12)]; }
 }
+.offer-page { background: radial-gradient(circle at 72% 25%,rgba(139,92,246,.17),transparent 28%),radial-gradient(circle at 18% 10%,rgba(184,255,92,.08),transparent 24%),#05080e; }
 
 .constellation-grid { background-image: linear-gradient(rgba(255,255,255,.025) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,.025) 1px, transparent 1px); background-size: 28px 28px; mask-image: radial-gradient(circle at center, black, transparent 82%); }
 .mission-spotlight::before { content: ''; position: absolute; width: 26rem; height: 26rem; right: -10rem; top: -17rem; border-radius: 999px; background: radial-gradient(circle, rgba(184,255,92,.15), rgba(167,139,250,.04) 48%, transparent 70%); pointer-events: none; }
