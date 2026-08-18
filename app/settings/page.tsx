@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import { Shell } from '@/components/shell';
 import { StatusBadge } from '@/components/ui';
+import { GoogleAutomations } from '@/components/google-automations';
 
 type Service = { id: string; name: string; ready: boolean; healthy?: boolean; detail: string };
 
@@ -49,6 +50,7 @@ export default function SettingsPage() {
           </section>
         )) : <p className="card text-sm text-slate-400">Diagnostic en cours…</p>}
       </div>
+      <GoogleAutomations />
     </Shell>
   );
 }

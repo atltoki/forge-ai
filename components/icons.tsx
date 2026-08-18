@@ -24,6 +24,8 @@ export function Icon({ name, size = 18 }: { name: string; size?: number }) {
     arrow: 'M5 12h14m-5-5l5 5-5 5',
     users: 'M16 21v-2a4 4 0 00-4-4H6a4 4 0 00-4 4v2m7-10a4 4 0 100-8 4 4 0 000 8zm13 10v-2a4 4 0 00-3-3.87m-2-12a4 4 0 010 7.75',
     mail: 'M4 4h16v16H4V4zm0 2l8 6 8-6',
+    calendar: 'M5 4h14a2 2 0 012 2v14H3V6a2 2 0 012-2zm3-2v4m8-4v4M3 9h18',
+    drive: 'M8 3h8l5 9-4 7H7l-4-7 5-9zm0 0l4 7m4-7l-4 7m-9 2h9m9 0h-9m-5 7l5-7m5 7l-5-7',
     phone: 'M5 3h4l2 5-3 2a15 15 0 006 6l2-3 5 2v4c0 1-1 2-2 2C10 20 4 14 3 5c0-1 1-2 2-2z',
   };
 

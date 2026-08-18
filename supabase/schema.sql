@@ -144,6 +144,17 @@ create table if not exists public.outreach_messages (
   unique (user_id, prospect_id, step)
 );
 
+create table if not exists public.google_connections (
+  user_id uuid primary key references auth.users(id) on delete cascade,
+  google_email text not null default '',
+  access_token text not null,
+  refresh_token text not null,
+  expires_at timestamptz not null,
+  scopes text[] not null default '{}',
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now()
+);
+
 alter table public.users enable row level security;
 alter table public.tools enable row level security;
 alter table public.agents enable row level security;
@@ -153,6 +164,7 @@ alter table public.executions enable row level security;
 alter table public.logs enable row level security;
 alter table public.prospects enable row level security;
 alter table public.outreach_messages enable row level security;
+alter table public.google_connections enable row level security;
 
 create policy "users read own profile" on public.users for select using (auth.uid() = id);
 create policy "users update own profile" on public.users for update using (auth.uid() = id) with check (auth.uid() = id);
@@ -171,6 +183,8 @@ grant select, insert, update, delete on public.prospects to authenticated;
 grant all on public.prospects to service_role;
 grant select, insert, update, delete on public.outreach_messages to authenticated;
 grant all on public.outreach_messages to service_role;
+revoke all on public.google_connections from anon, authenticated;
+grant all on public.google_connections to service_role;
 
 create index if not exists agents_user_id_idx on public.agents(user_id);
 create index if not exists missions_user_id_status_idx on public.missions(user_id, status);
