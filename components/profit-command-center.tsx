@@ -49,19 +49,27 @@ export function ProfitCommandCenter({ opportunities, pipelineValue, hoursSaved, 
 
   return <section className="profit-command constellation-panel overflow-hidden" aria-labelledby="profit-title">
     <div className="profit-orb profit-orb-one"/><div className="profit-orb profit-orb-two"/>
-    <div className="relative flex flex-wrap items-start justify-between gap-4">
-      <div><p className="eyebrow">Profit command center</p><h2 id="profit-title" className="mt-1 text-xl font-semibold">Le meilleur usage de ton temps, aujourd’hui</h2><p className="mt-2 max-w-2xl text-sm text-slate-500">JARVIS classe les actions selon leur valeur, leur urgence et l’effort nécessaire.</p></div>
-      <div className="flex items-center gap-2 rounded-full border border-brand/20 bg-brand/[.07] px-3 py-2 text-xs text-brand"><span className="relative flex h-2 w-2"><span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-brand opacity-40"/><span className="relative inline-flex h-2 w-2 rounded-full bg-brand"/></span>Analyse active</div>
+    <div className="relative grid gap-5 xl:grid-cols-[.92fr_1.08fr]">
+      <div className="neural-stage">
+        <div className="flex w-full items-center justify-between"><div><p className="eyebrow">Neural command</p><h2 id="profit-title" className="mt-1 text-xl font-semibold">JARVIS <span className="text-brand">EN LIGNE</span></h2></div><span className="live-signal"><span/>Contexte actif</span></div>
+        <div className="neural-core" aria-label="Noyau JARVIS actif"><div className="neural-ring ring-a"/><div className="neural-ring ring-b"/><div className="neural-ring ring-c"/><div className="neural-brain"><i/><i/><i/><i/><i/><i/><span/></div></div>
+        <div className="neural-stats"><p><span>Compréhension</span><strong>98%</strong></p><p><span>Recommandations</span><strong>{opportunities.length}</strong></p><p><span>Données synchronisées</span><strong>100%</strong></p><p><span>Impact maximal</span><strong>{opportunities[0]?.score ?? 0}</strong></p></div>
+      </div>
+      <div className="priority-stage">
+        <div className="flex items-end justify-between gap-3"><div><p className="eyebrow">Priorités du jour</p><h3 className="mt-1 text-lg font-semibold">Meilleures actions</h3></div><span className="text-xs text-slate-600">Impact × urgence</span></div>
+        <div className="mt-5 grid gap-3">{opportunities.slice(0, 3).map((item, index) => <button key={item.id} onClick={() => void run(item)} disabled={busy === item.id || done.includes(item.id)} className="priority-row group"><span className="priority-number">{index + 1}</span><span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-brand/[.07] text-brand"><Icon name={item.type === 'revenu' ? 'retry' : item.type === 'temps' ? 'clock' : 'shield'} size={18}/></span><span className="min-w-0 flex-1 text-left"><strong className="block truncate text-sm font-medium text-slate-100">{item.title}</strong><small className="mt-1 block uppercase tracking-[.08em] text-slate-600">{item.type} · impact {Math.round(item.score)}</small></span><span className="text-right"><strong className="block text-sm text-brand">{item.value ? euro(item.value) : `${item.minutes} min`}</strong><small className="text-[10px] text-slate-600">{done.includes(item.id) ? 'Lancée' : busy === item.id ? 'Analyse…' : 'Exécuter'}</small></span><Icon name="chevron" size={15}/></button>)}</div>
+        <button onClick={() => setFilter('all')} className="btn-primary mt-4 w-full">Voir toutes les priorités <Icon name="arrow" size={16}/></button>
+      </div>
     </div>
 
-    <div className="relative mt-6 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+    <div className="relative mt-5 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
       <article className="profit-kpi"><span>Valeur du pipeline</span><strong>{euro(pipelineValue)}</strong><small>opportunités pondérées</small></article>
       <article className="profit-kpi"><span>Temps récupérable</span><strong>{hoursSaved.toLocaleString('fr-FR')} h</strong><small>sur les actions détectées</small></article>
       <article className="profit-kpi"><span>À valider</span><strong>{approvalCount}</strong><small>aucun envoi automatique</small></article>
       <article className="profit-kpi accent"><span>Score d’impact</span><strong>{opportunities[0]?.score ?? 0}/100</strong><small>meilleure action disponible</small></article>
     </div>
 
-    <div className="relative mt-7 flex gap-2 overflow-x-auto pb-1" role="tablist" aria-label="Filtrer les opportunités">
+    <div className="relative mt-7 flex items-center gap-2 overflow-x-auto pb-1" role="tablist" aria-label="Filtrer les opportunités"><span className="mr-2 hidden font-mono text-[9px] uppercase tracking-[.12em] text-slate-700 sm:inline">Toutes les actions</span>
       {filters.map(([value, label]) => <button key={value} role="tab" aria-selected={filter === value} onClick={() => setFilter(value)} className={`profit-filter ${filter === value ? 'active' : ''}`}>{label}</button>)}
     </div>
 

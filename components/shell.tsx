@@ -6,16 +6,16 @@ import { Icon } from './icons';
 import { CommandPalette } from './command-palette';
 
 const links = [
-  ['Pilotage', '/dashboard', 'grid'],
-  ['Cockpit', '/cockpit', 'bot'],
+  ['Commande', '/cockpit', 'grid'],
+  ['Pilotage', '/dashboard', 'bot'],
   ['Agents', '/agents', 'bot'],
   ['Missions', '/missions', 'target'],
-  ['Prospects', '/prospects', 'users'],
-  ['Mémoire', '/memory', 'brain'],
-  ['Outils', '/tools', 'wrench'],
-  ['Journal', '/logs', 'logs'],
-  ['Analyses', '/analytics', 'chart'],
-  ['Réglages', '/settings', 'gear'],
+  ['Opportunités', '/prospects', 'users'],
+  ['Connaissances', '/memory', 'brain'],
+  ['Intégrations', '/tools', 'wrench'],
+  ['Flux d’activité', '/logs', 'logs'],
+  ['Analyse', '/analytics', 'chart'],
+  ['Paramètres', '/settings', 'gear'],
 ];
 
 const mobileLinks = [links[0], links[3], links[4], links[9]];
