@@ -57,9 +57,9 @@ Sans Supabase configuré, l’application reste utilisable avec les données de 
 ## Paiements ponctuels
 
 `/api/checkout?offer=forgem-99` et `/api/checkout?offer=bolide-audit-149` créent une session Stripe
-avec des montants autorisés côté serveur. Configurez `STRIPE_SECRET_KEY` dans Vercel pour activer
-les redirections de paiement. `STRIPE_WEBHOOK_SECRET` reste requis pour le traitement des achats
-confirmés par `/api/stripe/webhook`.
+avec des montants autorisés côté serveur. Si `STRIPE_SECRET_KEY` n'est pas encore configurée,
+l'endpoint redirige vers le Payment Link live correspondant. `STRIPE_WEBHOOK_SECRET` reste requis
+pour le traitement des achats confirmés par `/api/stripe/webhook`.
 
 ## Supabase
 

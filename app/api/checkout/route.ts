@@ -9,6 +9,7 @@ const OFFERS = {
     amount: 9900,
     success: 'https://brand-kit-studio.pages.dev/commande.html?paid=1&offer=forgem-99',
     cancel: 'https://brand-kit-studio.pages.dev/commande.html?offer=forgem-99',
+    fallback: 'https://buy.stripe.com/00w7sKeDbeeO8Z2fJp5c403',
   },
   'bolide-audit-149': {
     name: 'BOLIDE — audit e-commerce express',
@@ -16,6 +17,7 @@ const OFFERS = {
     amount: 14900,
     success: 'https://bolide-59x.pages.dev/audit?paid=1',
     cancel: 'https://bolide-59x.pages.dev/audit',
+    fallback: 'https://buy.stripe.com/aFa6oG0Mlc6G8Z28gX5c404',
   },
 } as const;
 
@@ -27,7 +29,7 @@ export async function GET(request: NextRequest) {
   const offerKey = requestedOffer as keyof typeof OFFERS;
   const offer = OFFERS[offerKey];
   const secret = process.env.STRIPE_SECRET_KEY;
-  if (!secret) return NextResponse.json({ error: 'Paiement non configuré' }, { status: 503 });
+  if (!secret) return NextResponse.redirect(offer.fallback, 303);
 
   const params = new URLSearchParams();
   params.set('mode', 'payment');
