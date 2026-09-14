@@ -54,6 +54,13 @@ Puis ouvrez [http://localhost:3000](http://localhost:3000).
 
 Sans Supabase configuré, l’application reste utilisable avec les données de démonstration.
 
+## Paiements ponctuels
+
+`/api/checkout?offer=forgem-99` et `/api/checkout?offer=bolide-audit-149` créent une session Stripe
+avec des montants autorisés côté serveur. Configurez `STRIPE_SECRET_KEY` dans Vercel pour activer
+les redirections de paiement. `STRIPE_WEBHOOK_SECRET` reste requis pour le traitement des achats
+confirmés par `/api/stripe/webhook`.
+
 ## Supabase
 
 1. Créez un projet Supabase.
