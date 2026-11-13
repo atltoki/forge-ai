@@ -40,3 +40,28 @@ artifacts for approval. Define a command allowlist, sanitized workspaces,
 audit logs, replay-safe leases and human gates before enabling write tools.
 
 `npm run typecheck`, `npm test`, `npm run build` are the project check commands.
+
+## Local observational loop (Node 20+, Ollama)
+
+An isolated read-only agent is now available in `scripts/atl-director-local.mjs`.
+It observes up to six named GitHub repositories, invokes the Ollama chat API for
+up to two critique/refinement cycles, validates evidence URLs against observed
+GitHub metadata, then writes `~/.atl-director/latest.json`.
+
+On your Mac, after checking out the reviewed branch:
+
+```bash
+cd /path/to/forge-ai
+# For private repositories, provide a read-only fine-grained GitHub token:
+export GITHUB_TOKEN='YOUR_READ_ONLY_TOKEN'
+export OLLAMA_MODEL='gemma4:26b'
+node scripts/atl-director-local.mjs
+cat ~/.atl-director/latest.json
+```
+
+Never put tokens into `scripts/atl-director-projects.json` or commit them.
+It requires Ollama already running at `http://127.0.0.1:11434`.
+Repository names are edited in `scripts/atl-director-projects.json`.
+No local script has been installed or started on the user's Mac by this PR.
+Scheduling can be configured after first local validation (e.g., a launchd user agent).
+The local JSON is not yet synchronized to the web cockpit: this is the next integration step.
