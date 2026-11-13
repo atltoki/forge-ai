@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { priorityScore, type DirectorProject, type Stage } from '@/lib/director/core';
 
-type Project = DirectorProject;
+type Project = DirectorProject & { orbit_project_id?: string | null; orbit_focus?: boolean; orbit_next_action?: string; orbit_last_sync_at?: string | null; };
 type Proposal = {
   id: string; title: string; objective: string; rationale: string;
   project_id: string; action_kind: string; priority_score: number;
@@ -49,14 +49,15 @@ export function DirectorCockpit() {
     if (busy) return;
     setBusy(true); setNotice(''); setError('');
     try {
-      const response = await fetch('/api/director', {
+      const response = await fetch(action === 'sync_orbit' ? '/api/director/orbit' : '/api/director', {
         method: 'POST', headers: { 'content-type': 'application/json' },
         body: JSON.stringify({ action, ...extra }),
       });
       const payload = await response.json();
       if (!response.ok) throw new Error(payload.error || 'Action impossible');
       await load();
-      if (action === 'cycle') setNotice(`${payload.proposals_created} décision(s) proposée(s). Aucune action externe exécutée.`);
+      if (action === 'sync_orbit') setNotice(payload.warning || `ORBIT synchronisé : ${payload.imported} projet(s) ajouté(s), ${payload.updated} actualisé(s).`);
+      else if (action === 'cycle') setNotice(`${payload.proposals_created} décision(s) proposée(s). Aucune action externe exécutée.`);
       else if (action === 'bootstrap') setNotice('Portefeuille initialisé. Les informations doivent encore être vérifiées.');
       else setNotice('Décision enregistrée, sans exécution automatique.');
       if (action === 'update_project') { setEditing(null); setDraft(null); }
@@ -84,6 +85,7 @@ export function DirectorCockpit() {
           {!state?.projects.length
             ? <button disabled={busy || !state} className="btn-primary" onClick={() => void perform('bootstrap')}>Initialiser le portefeuille</button>
             : <button disabled={busy} className="btn-primary" onClick={() => void perform('cycle')}>Lancer le cycle du jour</button>}
+          <button disabled={busy || !state} className="btn-muted" onClick={() => void perform('sync_orbit')}>Synchroniser ORBIT</button>
         </div>
       </div>
       <div className="mt-6 grid grid-cols-2 gap-3 md:grid-cols-4">
@@ -112,10 +114,12 @@ export function DirectorCockpit() {
             <span className="font-mono text-xs text-slate-500">{String(index + 1).padStart(2, '0')}</span>
             <h3 className="font-medium text-white">{project.name}</h3>
             <span className="rounded-full border border-white/10 px-2 py-1 text-[10px] text-slate-400">{stages.find((stage) => stage.value === project.stage)?.label}</span>
+            {project.orbit_project_id && <span className="rounded-full border border-sky-400/20 bg-sky-400/5 px-2 py-1 text-[10px] text-sky-300">ORBIT {project.orbit_focus ? '• Focus' : '• Synchronisé'}</span>}
             {project.evidence === 0 && <span className="text-[10px] text-amber-300">Hypothèses non vérifiées</span>}
             <span className="ml-auto font-mono text-sm font-semibold text-brand">{priorityScore(project)}/100</span>
             <button className="btn-muted !px-3 !py-1.5 !text-xs" onClick={() => { setEditing(editing === project.id ? null : project.id); setDraft({ ...project }); }} type="button">{editing === project.id ? 'Fermer' : 'Évaluer'}</button>
           </div>
+          {project.orbit_next_action && <p className="mt-2 pl-7 text-xs text-sky-200/75">ORBIT : {project.orbit_next_action}</p>}
           {editing === project.id && draft && <div className="mt-5 border-t border-white/[.07] pt-4">
             <label className="block text-xs text-slate-400">Phase
               <select className="field mt-2" value={draft.stage} onChange={(e) => setDraft({ ...draft, stage: e.target.value as Stage })}>
