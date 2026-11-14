@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { parseOrbitPortfolio } from './orbit';
+import { parseOrbitPortfolio, isVerifiedOrbitOwner } from './orbit';
 
 describe('ORBIT read-only adapter', () => {
   it('maps known IDs to existing projects, without inventing evidence metrics', () => {
@@ -23,5 +23,20 @@ describe('ORBIT read-only adapter', () => {
   });
   it('fails closed on non-ORBIT payloads', () => {
     expect(() => parseOrbitPortfolio({items:[]})).toThrow();
+  });
+});
+
+describe('ORBIT account isolation', () => {
+  it('fails closed without owner configuration', () => {
+    expect(isVerifiedOrbitOwner({email:'a@example.com',email_confirmed_at:'2026-11-14'},undefined)).toBe(false);
+  });
+  it('rejects another verified Forge AI user', () => {
+    expect(isVerifiedOrbitOwner({email:'other@example.com',email_confirmed_at:'2026-11-14'},'owner@example.com')).toBe(false);
+  });
+  it('rejects an unverified email, even when its address matches', () => {
+    expect(isVerifiedOrbitOwner({email:'owner@example.com',email_confirmed_at:null},'owner@example.com')).toBe(false);
+  });
+  it('allows only the configured verified owner', () => {
+    expect(isVerifiedOrbitOwner({email:' Owner@example.com ',email_confirmed_at:'2026-11-14'},'owner@example.com')).toBe(true);
   });
 });
