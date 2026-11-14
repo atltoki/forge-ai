@@ -66,3 +66,12 @@ export function parseOrbitPortfolio(payload: unknown, now = new Date().toISOStri
   return Object.entries(records).slice(0, 100).map(([id, raw]) =>
     projectFromOrbit(id, raw as OrbitRecord, now)).filter((item): item is OrbitProject => item !== null);
 }
+
+/** Never disclose private ORBIT data to another FORGE AI tenant. */
+export function isVerifiedOrbitOwner(
+  user: { email?: string | null; email_confirmed_at?: string | null } | null,
+  ownerEmail?: string | null,
+): boolean {
+  const owner = ownerEmail?.trim().toLowerCase();
+  return Boolean(owner && user?.email_confirmed_at && user.email?.trim().toLowerCase() === owner);
+}
