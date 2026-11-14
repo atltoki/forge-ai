@@ -10,7 +10,8 @@
     "lint": "tsc --noEmit",
     "test": "vitest run",
     "test:watch": "vitest",
-    "check": "npm run typecheck && npm test && npm run build"
+    "check": "npm run typecheck && npm test && npm run test:node && npm run build",
+    "test:node": "node --test scripts/*.test.mjs"
   },
   "dependencies": {
     "@supabase/ssr": "^0.5.2",
