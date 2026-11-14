@@ -136,7 +136,7 @@ async function thinkWithOllama(model, observations, orbit, previous, iteration) 
   const response = await fetch(new URL('/api/chat', baseUrl), {
     method: 'POST', headers: { 'content-type': 'application/json' },
     body: JSON.stringify({
-      model, stream: false, format: 'json',
+      model, stream: false, format: 'json', think: false,
       messages: [
         { role: 'system', content: system },
         { role: 'user', content: JSON.stringify({
