@@ -4,6 +4,9 @@ on:
   push:
     branches:
       - fix/atl-director-orbit-priority-state
+  pull_request:
+    branches:
+      - feature/atl-director-mvp-20261113
   workflow_dispatch:
 
 permissions:
