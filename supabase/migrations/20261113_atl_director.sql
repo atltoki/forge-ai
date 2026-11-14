@@ -65,3 +65,8 @@ create policy director_cycles_owner on public.director_cycles for all to authent
 drop policy if exists director_proposals_owner on public.director_proposals;
 create policy director_proposals_owner on public.director_proposals for all to authenticated
   using (user_id = (select auth.uid())) with check (user_id = (select auth.uid()));
+
+-- Explicit role permissions for Supabase Data API; all rows remain protected by RLS.
+grant select, insert, update, delete on public.director_projects to authenticated;
+grant select, insert, update, delete on public.director_cycles to authenticated;
+grant select, insert, update, delete on public.director_proposals to authenticated;
