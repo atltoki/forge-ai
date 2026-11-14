@@ -31,5 +31,7 @@ jobs:
           cache: npm
       - name: Install locked dependencies
         run: npm ci
+      - name: Verify protected Worker in simulated Node runtime
+        run: node --test workers/orbit-priorities-d1/tests/reader.node.mjs
       - name: Validate protected Next.js API and existing tests
         run: npm run check
