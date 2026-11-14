@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { createSupabaseServerClient } from '@/lib/supabase/server';
-import { parseOrbitPortfolio } from '@/lib/director/orbit';
+import { parseOrbitPortfolio, isVerifiedOrbitOwner } from '@/lib/director/orbit';
 export const dynamic = 'force-dynamic';
 
 async function readOrbit() {
@@ -32,8 +32,7 @@ export async function POST() {
   // This bridge reads the owner's PRIVATE ORBIT portfolio. Forge AI may have other
   // authenticated users, so RLS alone does not authorize access to that source.
   // Fail closed until the verified owner's email is explicitly configured.
-  const owner = process.env.ORBIT_OWNER_EMAIL?.trim().toLowerCase();
-  if (!owner || !user.email_confirmed_at || user.email?.trim().toLowerCase() !== owner) {
+  if (!isVerifiedOrbitOwner(user, process.env.ORBIT_OWNER_EMAIL)) {
     return NextResponse.json({error:'Import ORBIT réservé au propriétaire vérifié.'}, {status:403});
   }
   let projects;
