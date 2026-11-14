@@ -1,0 +1,20 @@
+name: ORBIT D1 schema contract checks
+on:
+  push:
+    branches:
+      - feature/orbit-priorities-d1-staging
+  pull_request:
+    branches:
+      - feature/atl-director-mvp-20261113
+permissions:
+  contents: read
+jobs:
+  sqlite-contract:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Run in-memory SQLite contract tests
+        run: python3 -m unittest discover -s workers/orbit-priorities-d1/tests -v
