@@ -29,6 +29,13 @@ export async function POST() {
   if (!supabase) return NextResponse.json({error:'Supabase non configuré'}, {status:503});
   const {data:{user}} = await supabase.auth.getUser();
   if (!user) return NextResponse.json({error:'Authentification requise'}, {status:401});
+  // This bridge reads the owner's PRIVATE ORBIT portfolio. Forge AI may have other
+  // authenticated users, so RLS alone does not authorize access to that source.
+  // Fail closed until the verified owner's email is explicitly configured.
+  const owner = process.env.ORBIT_OWNER_EMAIL?.trim().toLowerCase();
+  if (!owner || !user.email_confirmed_at || user.email?.trim().toLowerCase() !== owner) {
+    return NextResponse.json({error:'Import ORBIT réservé au propriétaire vérifié.'}, {status:403});
+  }
   let projects;
   try { projects = await readOrbit(); } catch(error) {
     return NextResponse.json({error:error instanceof Error?error.message:'Synchronisation ORBIT impossible'}, {status:503});
