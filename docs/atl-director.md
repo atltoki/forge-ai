@@ -79,27 +79,20 @@ Do not assert that a synchronization imported existing records when it found zer
 
 ### A. Secure cloud portfolio synchronization
 
-The proposed `workers/orbit-reader/worker.mjs` is a **separate**, read-only Worker
+The `workers/orbit-reader/worker.mjs` source is a **separate**, read-only Worker
 which can bind to ORBIT's existing PORTFOLIO KV namespace.
 It exposes only `GET /v1/projects` and requires a server-side bearer secret.
 It never touches `espace-personnel` code or bypasses its Access policies.
 It returns only stage, focus, next action, note, evidence URL, review date and revisions,
 and excludes historical entries and all other keys.
 
-**Not deployed by this PR.** To activate after review:
+**Cloudflare staging activation on 2026-11-14:** a separate Worker named `atl-director-orbit-reader` was uploaded, enabled on its workers.dev subdomain and bound to ORBIT's existing KV with a server-side secret. Matching Vercel variables were created for the PR branch's **preview environment only**. This does not mean the application is functional end to end: the Supabase migrations are pending, the Worker was not verified over live HTTP, and the local Mac remains unconfigured. To fully activate after review:
 
-1. Deploy this standalone Worker to the same Cloudflare account as ORBIT.
-   Bind PORTFOLIO to ORBIT's existing KV namespace (look up its current identifier
-   through Cloudflare, do not rely on stale IDs).
-2. Set a new random secret of at least 32 bytes as `ORBIT_BRIDGE_TOKEN` on this Worker.
-   Use the same secret as **server-only** `ORBIT_BRIDGE_TOKEN` in FORGE AI on Vercel.
-   Store it using platform secret stores; do not commit credentials or put them in
-   `NEXT_PUBLIC_*` variables.
-3. Set `ORBIT_BRIDGE_URL=https://YOUR-WORKER.YOUR-SUBDOMAIN.workers.dev/v1/projects`
-   **server-side** in FORGE AI. The API enforces HTTPS, a `workers.dev` hostname,
-   and the exact endpoint path.
-4. Apply the two reviewed Director migrations to the right Supabase project.
-5. Authenticate to FORGE AI and use `/director` → **Synchroniser ORBIT**.
+1. Verify the deployed read-only Worker through an authenticated **server-side** integration test; never send the secret to the browser.
+2. Verify `ORBIT_BRIDGE_URL` and `ORBIT_BRIDGE_TOKEN` are present on the **PR branch preview** only. Redeploy the preview if the new variables were added after build.
+3. Identify the exact Supabase project attached to FORGE AI, then apply both reviewed Director migrations **only to that project**. Do not guess a project ID.
+4. Authenticate to the preview of FORGE AI and use `/director` → **Synchroniser ORBIT**.
+5. Review security and results before merging to production.
 
 Sync updates ORBIT's stage, focus, note and next action. It does **not** overwrite
 Director's commercial scoring. It does **not** write to ORBIT or execute an agent.
