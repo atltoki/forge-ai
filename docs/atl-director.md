@@ -122,3 +122,9 @@ Once the Director migration, bridge and local gateway are configured:
 build a secured, replay-safe ingestion pipeline so ORBIT-priority findings and
 Director missions are reconciled in one cockpit. No autonomous scheduling or
 outbound action is active yet.
+
+### Private-account authorization
+
+`POST /api/director/orbit` is **not available to all FORGE AI users**. In addition to a valid Supabase session, it requires a confirmed email matching the **server-only** `ORBIT_OWNER_EMAIL` environment variable. If that variable is absent or mismatched, access fails closed with HTTP 403. It was set only in the PR-specific Vercel preview. Never expose it through a `NEXT_PUBLIC_*` variable. This source access check is required even though each destination table already uses per-user RLS.
+
+Local Mac verification is documented in [`claude-code-orbit-handoff.md`](./claude-code-orbit-handoff.md).
